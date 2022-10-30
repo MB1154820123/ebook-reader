@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>IndexDB_demo</title>
+  <style>
+    th{
+      text-align: right;
+    }
+  </style>
+  <script src="../static/js/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+<p>ddddd</p>
+<table>
+  <tr><th>NoteId:</th><td><input id="noteId" type="text" placeholder="请输入ID"/></td></tr>
+  <tr><th>备注:</th><td><input id="desc" type="text" placeholder="请输入备注"/></td></tr>
+  <tr><th>操作:</th><td><input onclick="addData(selection.anchorOffset,$('#desc').val())" id="submit" type="button" value="提交"/></td></tr>
+</table>
+<script>
+  // 准备基本配置数据
+  const DB_NAME = "Notes";
+  const DB_VERSION = 1;
+  const DB_STORE_NAME = "notes_ids";
+  // 声明DB
+  let db;
+  // 声明仓库
+  let store;
+  // 实现DB
+  let request = indexedDB.open(DB_NAME);
+  // 创建数据库成功
+  request.onsuccess = function (evt) {
+    db = this.result;
+  };
+  // 配置数据仓库
+  request.onupgradeneeded = function (evt) {
+    store = evt.currentTarget.result.createObjectStore(
+            DB_STORE_NAME, {keyPath: 'id', autoIncrement: true});
+    /**
+     * 创建索引
+     store.createIndex('biblioid', 'biblioid', { unique: true });
+     store.createIndex('title', 'title', { unique: false });
+     store.createIndex('year', 'year', { unique: false });
+     */
+  };
+
+
+  //********************************************************以下是基于上述配置封装的方法函数**************************
+  // 获取对象存储仓库
+  function getObjectStore(store_name, mode) {
+    let tx = db.transaction(store_name, mode);
+    return tx.objectStore(store_name);
+  }
+
+  // 删除对象存储仓库
+  function clearObjectStore(store_name) {
+    store = getObjectStore(DB_STORE_NAME, 'readwrite');
+    store.clear();
+  }
+
+  // 添加数据
+  function addData(noteId, desc) {
+    console.log("进入添加数据.....");
+    let obj = {noteId: noteId, desc: desc};
+    store = getObjectStore(DB_STORE_NAME, 'readwrite');
+    store.add(obj);
+  }
+
+  const selection = window.getSelection();
+</script>
+
+</body>
+</html>

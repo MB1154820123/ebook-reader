@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.zymdb.eb.reader.mapper.NoteMapper">
+
+    <resultMap id="BaseResultMap" type="top.zymdb.eb.reader.entity.Note">
+        <!--@Table note-->
+        <result property="notesId" column="notes_id" jdbcType="VARCHAR"/>
+        <result property="creatorId" column="creator_id" jdbcType="INTEGER"/>
+        <result property="noteContent" column="note_content" jdbcType="VARCHAR"/>
+        <result property="commentContent" column="comment_content" jdbcType="VARCHAR"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="modifyTime" column="modify_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="BaseResultMap">
+        select
+          notes_id, creator_id, note_content, comment_content, create_time, modify_time
+        from note
+        where notes_id = #{notesId}
+    </select>
+    <!--通过实体作为筛选条件查询-->
+    <select id="queryAll" resultMap="BaseResultMap">
+        select
+          notes_id, creator_id, note_content, comment_content, create_time, modify_time
+        from test.note
+    </select>
+
+    <!--查看笔记是否为空-->
+    <select id="haveNotes" resultType="java.lang.String">
+        select
+               CASE
+                   WHEN note_content = '' THEN 'empty'
+                   WHEN note_content != '' THEN 'fill'
+               END
+        from note where notes_id = #{noteId}
+    </select>
+
+    <select id="queryIds" resultType="java.lang.String">
+        select notes_id from note;
+    </select>
+    <select id="getLastNotesId" resultType="java.lang.String">
+        select notes_id from note order by create_time desc limit 1
+    </select>
+    <select id="hasNote" resultType="java.lang.Boolean">
+        select
+               case
+               when note_content is not null then true
+               when note_content is null then false
+               end b
+        from note where notes_id = #{notesId}
+    </select>
+
+    <!--新增列-->
+    <insert id="insert" keyProperty="notesId" useGeneratedKeys="true">
+        insert into note(notes_id,note_content,creator_id,create_time)
+        values (#{notesId}, #{noteContent}, #{creatorId}, #{createTime})
+    </insert>
+    <!--通过主键修改数据-->
+    <update id="update">
+        update note
+        <set>
+            <if test="notesIdNewColor != null">
+                notes_id = #{notesIdNewColor},
+            </if>
+            <if test="creatorId != null">
+                creator_id = #{creatorId},
+            </if>
+            <if test="noteContent != null">
+                note_content = #{noteContent},
+            </if>
+            <if test="commentContent != null and commentContent != ''">
+                comment_content = #{commentContent},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime},
+            </if>
+            <if test="modifyTime != null">
+                modify_time = #{modifyTime},
+            </if>
+        </set>
+        where notes_id = #{notesId}
+    </update>
+    <!--更新noteId-->
+    <update id="notesIdSub">
+            <foreach collection="ids" item="item" index="index">
+                update note set notes_id= SELECT REGEXP_REPLACE(  #{item.noteId},'([^\-]*\-[^\-]*\-[^\-]*\-[bm])([0-9]+)(\-[^\-]*)','$1'+(CAST('$2' AS SIGNED) bid >1?bid-1:bid)+'$3' )
+                where 1=1 and  notes_id =#{item.noteId };
+            </foreach>
+        update note set notes_id = #{newNoteId} where notes_id = #{oldNoteId}
+    </update>
+    <update id="updateNotesId">
+        update note set notes_id = #{newNotesId} where notes_id = #{notesId}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete from note where notes_id = #{notesId}
+    </delete>
+
+</mapper>
+

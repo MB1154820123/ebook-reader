@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <script src="../static/js/jquery-3.6.0.min.js"></script>
+  <script src="../static/js/utils/string_util.js"></script>
+</head>
+<body>
+<p id="p1">add<b style="color:red">s打</b>赏<b>ss</b>dsw<mark>你好</mark>ddd<b>ssada</b></p>
+<button onclick="document.getElementById('p1').innerHTML = rpHtmlByRange(document.getElementById('p1'),5,6,'<b style=color:red>')">变换</button>
+<button id="b2">清除p2内的子标签</button>
+<div style="background: lightblue"><p id="p2"><span id="0-0-0:2-span-" style=":" onmouseover="selectNote(this,1)" onclick="addNote(this,2)">算法</span>是<span id="0-0-3:5-span-" style=":" onmouseover="selectNote(this,1)" >什么</span>？</p></div>
+<!-- style=":" onmouseover="selectNote(this,1)" onclick="addNote(this,2)"-->
+<script>
+    $("#b2").click(function () {
+       document.getElementById("p2").innerHTML = clearMark($("#p2")[0].innerHTML,"span","0-0-3:5-span-");
+    });
+</script>
+</body>
+</html>

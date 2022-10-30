@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="../static/css/sweetalert.css">
+    <link rel="stylesheet" type="text/css" href="https://www.jq22.com/jquery/font-awesome.4.6.0.css">
+    <script src="../static/js/jquery-3.6.0.min.js"></script>
+    <script src="../static/js/sweetalert-dev.js"></script>
+    <script src="../static/js/utils/string_util.js"></script>
+    <style>
+        b,mark,span{cursor: pointer;}
+        span { border-bottom: 2px dotted;color: #E37274;}
+        mark{color:antiquewhite}
+        /*RCM*/
+        body{
+            position: absolute;
+            top: 0px;
+            bottom: 0px;
+            right: 0px;
+            left: 0px;
+            overflow: hidden;
+            font-family: "microsoft yahei";
+        }
+
+        .RCM-Main{
+            position: absolute;
+        }
+        .RCM-container{
+            border: 1px solid #ccc;
+            padding: 5px 0px;
+            display: block;
+            box-shadow: 0px 0px 2px #ccc;
+            font-size: 14px;
+            border-radius: 3px;
+            z-index: 10000;
+            background: #fff;
+            color: #000;
+        }
+        .RCM-container ul{
+            list-style: none;
+            padding: 0px;
+            margin: 0px;
+        }
+
+        .RCM-container ul li{
+            /* width: 70px; */
+            height: 30px;
+            line-height: 30px;
+            /* text-align: center; */
+            padding:0px 18px 0px 15px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .RCM-container ul li:hover{
+            background-color: rgba(52, 58, 64, 1.0);
+            color: #fff;
+        }
+        /*.textcenter{*/
+        /*    text-align: center;*/
+        /*}*/
+
+        .fa-align-right{
+            position: absolute;
+            right: 0px;
+            top: 10px;
+        }
+        .RCM-child{
+            position: absolute;
+            top: 0px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+<div class="bu">
+    <div class="duan">
+        <p class="hang">第一段第一行牛66666666</p>
+        <p class="hang">第一段第二行牛66666666</p>
+        <p class="hang">第一段第三行牛66666666</p>
+    </div>
+    <div class="duan">
+        <p class="hang">第二段第一行牛66666666</p>
+        <p class="hang">第二段第二行牛66666666</p>
+        <p class="hang">第二段第三行牛66666666</p>
+    </div>
+</div>
+
+<!--右键菜单-->
+<div class="RCM-container RCM-Main"></div>
+<script>
+// 永不消逝的全局变量
+let noteID;
+// 添加noteID
+function addNoteId(selection,tag,color,type) {
+    if ( undefined == selection || null == selection){
+        selection = window.getSelection();
+    }
+    let hang = selection.focusNode.parentElement;
+    let range = selection.getRangeAt(0);
+    let left = selection.anchorOffset;
+    let right = selection.focusOffset;
+    if ( left == right ) {
+        return false;
+    }
+    let max;
+    if ( left > right ) {
+        max = left;
+        left = right;
+        right = max;
+    }
+    let b1 = (range.startContainer.previousSibling == null);
+    let b2 = (range.startContainer.nextSibling == null);
+    let hangOuter = hang.outerHTML.replace("<p class=\"hang\">","").replace("</p>","");
+    if ( !hangOuter.includes("</b>") && !hangOuter.includes("</mark>") && !hangOuter.includes("</span>") ) {
+        // 表示当前行中没有笔记，既然这样，接下来添加的笔记是第一个，id是无争议的
+        // 没有笔记正常流程，不用改动left、right
+    } else if ( !b1 && b2 ) {
+        let nextId = range.startContainer.previousSibling.id;
+        let offR = parseInt(nextId.split("-")[2].split(":")[1]);
+        right = right + offR;
+        left = right - selection.toString().length;
+    } else if ( !b1 ) { // 前无元素后有元素、前后都有元素、前后都无元素
+        let preId = range.startContainer.previousSibling.id;
+        let offR = parseInt(preId.split("-")[2].split(":")[1]);
+        right = right + offR;
+        left = right - selection.toString().length;
+    }
+    let did;
+    let hid;
+    let duan = selection.focusNode.parentElement.parentElement;
+    let duans = document.getElementsByClassName("duan");
+    for (let i = 0; i < duans.length; i++) {
+        if (duans[i] === duan) {
+            did = i;
+            let hangs = duans[i].children;
+            for (let j = 0; j < hangs.length; j++) {
+                if (hangs[j] === hang) {
+                    hid = j;
+                }
+            }
+        }
+    }
+    let noteId = did + "-" + hid + "-" + left + ":" + right + "-" + tag + "-" + color;
+    // 两种添加ID的情况
+    if ( type == 1 ) {
+        return noteId
+    } else {
+        let basicNote = {
+            "notesId": noteId,
+            "creatorId": 10001,
+            "createTime": new Date
+        }
+        let sci1 = "onmouseover";
+        let sci2 = "onclick";
+        let scv1 = "selectNote(this,1)";
+        let scv2 = "addNote(this,2)";
+
+        let stl = tag == "mark" ? "background-color" : "color";
+        let node = document.createElement(tag);
+        node = $(node).attr("id", noteId).attr(sci1, scv1).attr(sci2, scv2).css(stl, color).text(selection)[0];
+        range.deleteContents();
+        range.insertNode(node);
+        noResponseAjax("addNote", basicNote)
+    }
+}
+// 渲染notesID
+const renderNote = function (noteIds) {
+    if ( "" != noteIds ) {
+        noteIds = noteIds.replace(/\[|]/g, "").split(",");
+        for (let n = 0; n < noteIds.length; n++) {
+            let did = parseInt(noteIds[n].split("-")[0]);
+            let hid = parseInt(noteIds[n].split("-")[1]);
+            let left = parseInt(noteIds[n].split("-")[2].split(":")[0]);
+            let right = parseInt(noteIds[n].split("-")[2].split(":")[1]);
+            let tag = noteIds[n].split("-")[3];
+            let color;
+            switch (noteIds[n].split("-")[4]) {
+                case "black":
+                    color = "black";
+                    break;
+                case "red":
+                    color = "red";
+                    break;
+                case "blue":
+                    color = "blue";
+                    break;
+                case "green":
+                    color = "green";
+                    break;
+                case "skyblue":
+                    color = "skyblue";
+                    break;
+                case "yellowgreen":
+                    color = "yellowgreen";
+                    break;
+                case "purple":
+                    color = "purple";
+                    break;
+                case "orange":
+                    color = "orange";
+                    break;
+                default:
+                    color = "";
+                    break;
+            }
+            let sci1 = "onmouseover";
+            let sci2 = "onclick";
+            let scv1 = "selectNote(this,1)";
+            let scv2 = "addNote(this,2)";
+            let stl = (tag == "mark" ? "background-color" : tag == "b" ?  "color":"");
+            let thisHangNode = document.getElementsByClassName("duan")[did].getElementsByClassName("hang")[hid];
+            let ml = "<"+tag+" id="+noteIds[n]+" style="+stl+":"+color+">";
+            thisHangNode.innerHTML = replaceSelectionIgnoreMark(thisHangNode,left,right,ml);
+        }
+    }
+};
+
+    // 当用户点击右键菜单时包装选中的文本
+    function getNoteId(selection,tag,color) {
+        let type = 1; // 0.正常调用 1.闭包调用
+        function innerAddNoteId() {
+            return addNoteId(selection,tag,color,type)
+        }
+        return  innerAddNoteId;
+    }
+    $(function(){
+        $("p").bind('mouseup',function(){
+            let sel = getSel();
+            let getId = getNoteId(sel,"tag","color");
+            noteID = getId(); // 为全局变量赋值
+        })
+    })
+    function getSel(){
+        if(document.Selection){
+            //ie浏览器
+            return document.selection;
+        }else{
+            //标准浏览器
+            return window.getSelection();
+        }
+    }
+    // 创建右键菜单类
+    (function() {
+        let that;
+        let arr = new Array();
+        let html = "";
+        ! function(e) {
+            e.RMenu = {
+                init: function(per) {
+                    if (typeof(per) != "object" && !per.hasOwnProperty('area') && !per.hasOwnProperty(
+                        'items') && !per.hasOwnProperty('callback')) throw "json 数据错误";
+                    that = this;
+                    this.showmenu(per);
+                    let areaHeight = $(per.area).height();
+                    let areaWidth = $(per.area).width();
+                    let menuHeight = $('.RCM-Main').height();
+                    let menuWidth = $('.RCM-Main').width();
+                    $(per.area).bind('contextmenu', function() {
+                        let xPos = parseInt(event.pageX + 10);
+                        let yPos = event.pageY;
+                        if (areaWidth - xPos < menuWidth) {
+                            xPos = (xPos - menuWidth - 20);
+                            $('.RCM-container').css({
+                                left: (xPos - menuWidth - 20) + "px",
+                                top: yPos + "px"
+                            }).show();
+                        }
+                        if (areaHeight - yPos < menuHeight) {
+                            yPos = (yPos - menuHeight - 20);
+                        }
+                        $('.RCM-Main').css({
+                            left: xPos + "px",
+                            top: yPos + "px"
+                        }).show();
+                        return false;
+                    })
+                    $(per.area).on('click', function() {
+                        $('.RCM-container').hide();
+                    });
+                    $('.RCM-container li').on('click', function() {
+                        let content = $(this).data('content');
+                        $('.RCM-container').hide();
+                        per.callback({
+                            event: 'click',
+                            data: content
+                        });
+                    });
+
+                    $('.RCM-container ul li').mouseover(function(e) {
+                        if ($(this).find('i').hasClass('fa-align-right')) {
+                            let width = $(this).find('i').next('.RCM-child').width();
+                            $(this).find('i').next('.RCM-child').css('left', width).show();
+                        }
+                    });
+
+                    $('.RCM-container ul li,.RCM-child li').mouseout(function() {
+                        $('.RCM-child').hide();
+                    });
+                },
+                contextMenu: function(per, key) { key = key ? key : "Main";
+                    html += '<div class="RCM-container RCM-' + key + '"><ul>';
+                    $.each(per.items, function(item, val) {
+                        let icon = val.icon ? '<i class="fa fa-' + val.icon + ' fa-fw ">&nbsp;' : ''
+                        let center = val.icon ? 'nocenter' : 'textcenter';
+                        let iconAfter = val.items ?
+                            '<i class="fa fa-chevron-right fa-fw fa-align-right">&nbsp;' : '';
+                        html += '<li  data-content=' + item + ' class="' + center +'">' + icon +
+                            '</i>' + val.name + iconAfter + '</i>';
+                        if (val.hasOwnProperty('items')) {
+                            that.contextMenu(val, 'child');
+                        }
+                        html += '</li>';
+                    });
+                    html += "</ul></div>";
+                    return html;
+                },
+                showmenu: function(per) {
+                    let ce = this.contextMenu(per);
+                    $(per.area).append(ce);
+                    $('.RCM-container').hide();
+                }
+            };
+        }(window)
+    })();
+    // 当用户右击了body，将右键菜单渲染到dom
+    $(function(){
+        $("body").bind('mouseup',function(){
+            // 初始化右键菜单
+            let rcm = window.RMenu;
+            rcm.init({
+                area: 'body',
+                items: {
+                    "mark": {
+                        name: "标记选中", icon: 'font',
+                        items: {
+                            "underline": {name: "划线记号", icon: 'underline'},
+                            "bold": {name: "加粗记号", icon: 'bold'}
+                        }
+                    },
+                    "highlight": {
+                        name: "高亮选中", icon: 'google-wallet',
+                        items: {
+                            "high-text": {name: "描边高亮", icon: 'square-o'},
+                            "high-bg": {name: "背景高亮", icon: 'square'}
+                        }
+                    },
+                    "leanpub": {
+                        name: "阅读笔记", icon: 'leanpub',
+                        items: {
+                            "note-text": {name: "文本笔记", icon: 'file-word-o'},
+                            "note-pic": {name: "图片笔记", icon: 'file-image-o'},
+                            "note-aud": {name: "音频笔记", icon: 'file-sound-o'},
+                            "note-vid": {name: "视频笔记", icon: 'file-video-o'}
+                        }
+                    },
+                    "edit": {name: "编辑笔记", icon: 'edit'},
+                    "del": {name: "删除笔记", icon: 'trash-o'}
+                },
+                callback: function (res) {
+                    if (res.data == 'underline') {
+                        console.log("点击了划线———————————》noteID:"+noteID)
+                        let color = "";
+                        let tag = "span";
+                        let finalNoteId = noteID.replace("color",color).replace("tag",tag);
+                        renderNote(finalNoteId);
+                    } else if (res.data == 'bold') {
+                        console.log("点击了加粗———————————》noteID:"+noteID)
+                        let color = "black";
+                        let tag = "b";
+                        let finalNoteId = noteID.replace("color",color).replace("tag",tag);
+                        renderNote(finalNoteId);
+                    } else if (res.data == 'high-text') {
+                        console.log("点击了描边高亮———————————》noteID:"+noteID)
+                        let color = "orange";
+                        let tag = "b";
+                        let finalNoteId = noteID.replace("color",color).replace("tag",tag);
+                        renderNote(finalNoteId);
+                    } else if (res.data == 'high-bg') {
+                        console.log("点击了背景高亮———————————》noteID:"+noteID)
+                        let color = "orange";
+                        let tag = "mark";
+                        let finalNoteId = noteID.replace("color",color).replace("tag",tag);
+                        renderNote(finalNoteId);
+                    } else if (res.data == 'note-text') {
+                        console.log('点击了文本笔记');
+                    } else if (res.data == 'note-pic') {
+                        console.log('点击了图片笔记');
+                    } else if (res.data == 'note-aud') {
+                        console.log('点击了音频笔记');
+                    } else if (res.data == 'note-vid') {
+                        console.log('点击了视频笔记');
+                    } else if (res.data == 'edit') {
+                        console.log('点击了编辑笔记');
+                    } else if (res.data == 'del') {
+                        console.log('点击了删除笔记');
+                    }
+                }
+            })
+        })
+    })
+
+
+
+
+    // 初始化
+    $(document).ready(function() {
+
+    })
+
+</script>
+
+</body>
+</html>

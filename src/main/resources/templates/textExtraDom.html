@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../static/js/jquery-3.6.0.min.js"></script>
+  <script src="../static/js/utils/html_util.js"></script>
+  <script src="../static/js/sweetalert-dev.js"></script>
+  <link rel="stylesheet" href="../static/css/sweetalert.css">
+</head>
+<body>
+<input id="url" type="text" placeholder="请输入需要提取的网址"/>
+<button id="go">开始提取</button>
+<div id="result"></div>
+<script>
+  $("#go").click(function () {
+    let url = document.getElementById("url").value
+    console.log("url:"+url)
+      $.ajax({ url: "https://www.baidu.com",
+                // data:{url:encodeURI(url)},
+                type:"post",
+                dataType:"html",
+              success: function(v){
+              $("#result").html(v);
+      }});
+  })
+
+
+</script>
+</body>
+</html>
