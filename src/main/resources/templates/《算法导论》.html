@@ -126,8 +126,24 @@
         position: relative;
     }
 
-    .RCM-container ul li:hover{
-        background-color: rgba(52, 58, 64, 1.0);
+    .RCM-container ul li[data-content^=mark]:hover{
+        background-color: mediumpurple;
+        color: #fff;
+    }
+    .RCM-container ul li[data-content^=highlight]:hover{
+        background-color: cadetblue;
+        color: #fff;
+    }
+    .RCM-container ul li[data-content^=note]:hover{
+        background-color: yellowgreen;
+        color: #fff;
+    }
+    .RCM-container ul li[data-content=edit]:hover{
+        background-color: deeppink;
+        color: #fff;
+    }
+    .RCM-container ul li[data-content=del]:hover{
+        background-color:orangered;
         color: #fff;
     }
     /*.textcenter{*/
@@ -189,8 +205,7 @@ Range对象使用心得：
         <p class="hang">算法是定义良好的计算过程，它取一个或一组值作为输入，并产生出一个或一组值作为输出。</p>
         <p class="hang">算法是一系列的计算步骤，将输入数据转换成输出结果。</p>
     </div>
-<!--    <button t="1" id="codeStyleBtn">样式切换</button>-->
-    <pre><span t="1" id="codeStyleBtn" class="code_stl_trigger">切换主题</span><code class="language-javascript line-numbers">let a = 12;
+    <pre><span t="1" class="code_stl_trigger">切换主题</span><code class="language-javascript line-numbers">let a = 12;
 @media (min-width: 64rem) {
 html { font-size: 120%; }
 }</code></pre>
@@ -198,7 +213,7 @@ html { font-size: 120%; }
 </div>
 <script type="text/javascript">
     // 代码样式
-    $("#codeStyleBtn").click(function (){
+    $(".code_stl_trigger").click(function (){
         if( $(this).attr("t") == 1 ){
             document.head.innerHTML=document.head.innerHTML.replace("<!--样式二：<link rel=\"stylesheet\" href=\"../static/css/prism-dark.css\">-->","<link rel=\"stylesheet\" href=\"../static/css/prism-dark.css\">");
             $(this).attr("t",2)
@@ -211,143 +226,79 @@ html { font-size: 120%; }
     // 永不消逝的全局变量
     let noteID;
     let selectionText;
-    function generateNoteId(selection,tag,color){
-        if ( undefined == selection || null == selection ){
-            selection = window.getSelection();
-        }
-        let hang = selection.focusNode.parentElement;
-        let range = selection.getRangeAt(0);
-        let left = selection.anchorOffset;
-        let right = selection.focusOffset;
-        if ( left == right ) {
-            return false;
-        }
-        let max;
-        if ( left > right ) {
-            max = left;
-            left = right;
-            right = max;
-        }
-        let b1 = (range.startContainer.previousSibling == null);
-        let b2 = (range.startContainer.nextSibling == null);
-        let hangOuter = hang.outerHTML.replace("<p class=\"hang\">","").replace("</p>","");
-        if ( !hangOuter.includes("</b>") && !hangOuter.includes("</mark>") && !hangOuter.includes("</span>") ) {
-            // 表示当前行中没有笔记，既然这样，接下来添加的笔记是第一个，id是无争议的
-            // 没有笔记正常流程，不用改动left、right
-        } else if ( !b1 && b2 ) {
-            let nextId = range.startContainer.previousSibling.id;
-            let offR = parseInt(nextId.split("-")[2].split(":")[1]);
-            right = right + offR;
-            left = right - selection.toString().length;
-        } else if ( !b1 ) { // 前无元素后有元素、前后都有元素、前后都无元素
-            let preId = range.startContainer.previousSibling.id;
-            let offR = parseInt(preId.split("-")[2].split(":")[1]);
-            right = right + offR;
-            left = right - selection.toString().length;
-        }
-        let did;
-        let hid;
-        let duan = selection.focusNode.parentElement.parentElement;
-        let duans = document.getElementsByClassName("duan");
-        for (let i = 0; i < duans.length; i++) {
-            if (duans[i] === duan) {
-                did = i;
-                let hangs = duans[i].children;
-                for (let j = 0; j < hangs.length; j++) {
-                    if (hangs[j] === hang) {
-                        hid = j;
+    // function getNoteId(){
+        function generateNoteId(){
+            let selection = getSel();
+            selectionText = selection.toString(); // 为全局变量selectionText赋值
+            let hang = selection.focusNode.parentElement;
+            let range = selection.getRangeAt(0);
+            let left = selection.anchorOffset;
+            let right = selection.focusOffset;
+            if ( left == right ) {
+                return false;
+            }
+            let max;
+            if ( left > right ) {
+                max = left;
+                left = right;
+                right = max;
+            }
+            let b1 = (range.startContainer.previousSibling == null);
+            let b2 = (range.startContainer.nextSibling == null);
+            let hangOuter = hang.outerHTML.replace("<p class=\"hang\">","").replace("</p>","");
+            if ( !hangOuter.includes("</b>") && !hangOuter.includes("</mark>") && !hangOuter.includes("</span>") ) {
+                // 表示当前行中没有笔记，既然这样，接下来添加的笔记是第一个，id是无争议的
+                // 没有笔记正常流程，不用改动left、right
+            } else if ( !b1 && b2 ) {
+                let nextId = range.startContainer.previousSibling.id;
+                let offR = parseInt(nextId.split("-")[2].split(":")[1]);
+                right = right + offR;
+                left = right - selection.toString().length;
+            } else if ( !b1 ) { // 前无元素后有元素、前后都有元素、前后都无元素
+                let preId = range.startContainer.previousSibling.id;
+                let offR = parseInt(preId.split("-")[2].split(":")[1]);
+                right = right + offR;
+                left = right - selection.toString().length;
+            }
+            let did;
+            let hid;
+            let duan = selection.focusNode.parentElement.parentElement;
+            let duans = document.getElementsByClassName("duan");
+            for (let i = 0; i < duans.length; i++) {
+                if (duans[i] === duan) {
+                    did = i;
+                    let hangs = duans[i].children;
+                    for (let j = 0; j < hangs.length; j++) {
+                        if (hangs[j] === hang) {
+                            hid = j;
+                        }
                     }
                 }
             }
-        }
-        let noteId = did + "-" + hid + "-" + left + ":" + right + "-" + tag + "-" + color;
-        return noteId
+            let noteId = did + "-" + hid + "-" + left + ":" + right + "-" + "" + "-" + "";
+            return noteId // 返出变量，构建永久闭包变量
     }
 
-
     // 添加noteID
-    function addNoteId(selection,tag,color,type) {
-        if ( undefined == selection || null == selection){
-            selection = window.getSelection();
+    function addNoteId(nid,tag,color,type) {
+        let noteId;
+        if ( undefined != nid) { // 如果自定义ID存在，就用自定义的
+            noteId = nid
+        } else { // 否则用全局默认的
+            noteId = noteID
         }
-        let noteId = generateNoteId(selection,tag,color)
-        let range = selection.getRangeAt(0);
-        /**
-        let hang = selection.focusNode.parentElement;
-        let range = selection.getRangeAt(0);
-        let left = selection.anchorOffset;
-        let right = selection.focusOffset;
-        if ( left == right ) {
-            return false;
-        }
-        let max;
-        if ( left > right ) {
-            max = left;
-            left = right;
-            right = max;
-        }
-        let b1 = (range.startContainer.previousSibling == null);
-        let b2 = (range.startContainer.nextSibling == null);
-        let hangOuter = hang.outerHTML.replace("<p class=\"hang\">","").replace("</p>","");
-        if ( !hangOuter.includes("</b>") && !hangOuter.includes("</mark>") && !hangOuter.includes("</span>") ) {
-            // 表示当前行中没有笔记，既然这样，接下来添加的笔记是第一个，id是无争议的
-            // 没有笔记正常流程，不用改动left、right
-        } else if ( !b1 && b2 ) {
-            let nextId = range.startContainer.previousSibling.id;
-            let offR = parseInt(nextId.split("-")[2].split(":")[1]);
-            right = right + offR;
-            left = right - selection.toString().length;
-        } else if ( !b1 ) { // 前无元素后有元素、前后都有元素、前后都无元素
-            let preId = range.startContainer.previousSibling.id;
-            let offR = parseInt(preId.split("-")[2].split(":")[1]);
-            right = right + offR;
-            left = right - selection.toString().length;
-        }
-        let did;
-        let hid;
-        let duan = selection.focusNode.parentElement.parentElement;
-        let duans = document.getElementsByClassName("duan");
-        for (let i = 0; i < duans.length; i++) {
-            if (duans[i] === duan) {
-                did = i;
-                let hangs = duans[i].children;
-                for (let j = 0; j < hangs.length; j++) {
-                    if (hangs[j] === hang) {
-                        hid = j;
-                    }
-                }
-            }
-        }
-        let noteId = did + "-" + hid + "-" + left + ":" + right + "-" + tag + "-" + color;
-         */
-        console.log("*********noteId:"+noteId)
         // 两种添加ID的情况
         if ( type === 1 ) {
-            console.log("进入返回notesId，而不添加notesId，将添加notesId的任务延迟到后边提交按钮处.............")
             return noteId
         } else {
-            let basicNote = {
-                "notesId": noteId,
-                "creatorId": 10001,
-                "createTime": new Date
+            if ( undefined != noteId && !noteId.includes("--") && noteId != "false" ) { // 当type !=  1 且noteID正常时，则把Id保存至数据库
+                let basicNote = {
+                    "notesId": noteId,
+                    "creatorId": 10001,
+                    "createTime": new Date
+                }
+                noResponseAjax("addNote", basicNote) // 将笔记信息添加至后端
             }
-            let sci1 = "onmouseover";
-            let sci2 = "onclick";
-            let scv1 = "selectNote(this.id,1)";
-            let scv2 = "addNote(this.id,this.innerText)";
-            let stl = (tag == "mark" ? "background-color" : tag == "b" ? "color":"");
-            let node = document.createElement(tag);
-            console.log("########noteId:"+noteId)
-            node = $(node)
-                    .attr("id", noteId)
-                    .attr(sci1, scv1)
-                    .attr(sci2, scv2)
-                    .css(stl, color)
-                    .text(selection)[0];
-            range.deleteContents();
-            range.insertNode(node);
-            console.log("原始的添加notesId.............")
-            noResponseAjax("addNote", basicNote)
         }
     }
     // 渲染notesID
@@ -393,7 +344,7 @@ html { font-size: 120%; }
                 let sci1 = "onmouseover";
                 let sci2 = "onclick";
                 let scv1 = "selectNote(this.id,1)";
-                let scv2 = "addNote(this.id,this.innerText)";
+                let scv2 = "addNote({noteId:this.id,selection:this.innerText})";
                 let script = " "+sci1+"="+scv1+" "+sci2+"="+scv2
                 let stl = (tag == "mark" ? "background-color" : tag == "b" ?  "color":"");
                 let thisHangNode = document.getElementsByClassName("duan")[did].getElementsByClassName("hang")[hid];
@@ -405,19 +356,24 @@ html { font-size: 120%; }
 
 
     // 当用户点击右键菜单时包装选中的文本
-    function getNoteId(selection,tag,color) {
-        function innerAddNoteId() {
-            return generateNoteId(selection,tag,color,1)
+    // 将非闭包变量转换为闭包变量并公布出去
+    function getNoteId() {
+        function gId() {
+            return generateNoteId()
         }
-        return  innerAddNoteId;
+        return  gId
     }
 
     $(function(){
-        $("p").bind('mouseup',function(){
-            let sel = getSel();
-            let getId = getNoteId(sel,"tag","color");
-            selectionText = sel.toString();
-            noteID = getId(); // 为全局变量赋值
+        $("p").bind('mouseup',function(){ // 当用户松开鼠标时设置全局noteID
+            console.log("进入p标签...")
+            // let getId = generateNoteId();
+            let gid = getNoteId();
+            noteID = gid();
+            if ( undefined != noteID ) {
+                console.log("SelectionText:"+selectionText)
+                console.log("noteID:"+noteID)
+            }
         })
     })
 
@@ -437,10 +393,6 @@ html { font-size: 120%; }
         let arr = new Array();
         let html = "";
         ! function(e) {
-
-
-
-
             e.RMenu = {
                 init: function(per) {
                     if (typeof(per) != "object" && !per.hasOwnProperty('area') && !per.hasOwnProperty(
@@ -535,19 +487,19 @@ html { font-size: 120%; }
                 "mark": {
                     name: "标记选中", icon: 'font',
                     items: {
-                        "underline": {name: "划线记号", icon: 'underline'},
-                        "bold": {name: "加粗记号", icon: 'bold'}
+                        "mark-underline": {name: "划线记号", icon: 'underline'},
+                        "mark-bold": {name: "加粗记号", icon: 'bold'}
                     }
                 },
                 "highlight": {
                     name: "高亮选中", icon: 'google-wallet',
                     items: {
-                        "high-text": {name: "描边高亮", icon: 'square-o'},
-                        "high-bg": {name: "背景高亮", icon: 'square'}
+                        "highlight-text": {name: "描边高亮", icon: 'square-o'},
+                        "highlight-bg": {name: "背景高亮", icon: 'square'}
                     }
                 },
-                "leanpub": {
-                    name: "阅读笔记", icon: 'leanpub',
+                "note": {
+                    name: "添加笔记", icon: 'leanpub',
                     items: {
                         "note-text": {name: "文本笔记", icon: 'file-word-o'},
                         "note-pic": {name: "图片笔记", icon: 'file-image-o'},
@@ -560,7 +512,7 @@ html { font-size: 120%; }
             },
             callback: function (res) {
                 let params;
-                if (res.data == 'underline') {
+                if (res.data == 'mark-underline') { // 划线
                     console.log("点击了划线———————————》noteID:" + noteID)
                     let color = "";
                     let tag = "span";
@@ -573,7 +525,7 @@ html { font-size: 120%; }
                     }
                     noResponseAjax("addNote", params)
                     renderNote(finalNoteId);
-                } else if (res.data == 'bold') {
+                } else if (res.data == 'mark-bold') { // 加粗
                     console.log("点击了加粗———————————》noteID:" + noteID)
                     let color = "black";
                     let tag = "b";
@@ -586,7 +538,7 @@ html { font-size: 120%; }
                     }
                     noResponseAjax("addNote", params)
                     renderNote(finalNoteId);
-                } else if (res.data == 'high-text') {
+                } else if (res.data == 'highlight-text') { // 描边高亮
                     console.log("点击了描边高亮———————————》noteID:" + noteID)
                     let color = "orange";
                     let tag = "b";
@@ -599,7 +551,7 @@ html { font-size: 120%; }
                     }
                     noResponseAjax("addNote", params)
                     renderNote(finalNoteId);
-                } else if (res.data == 'high-bg') {
+                } else if (res.data == 'highlight-bg') { // 背景高亮
                     console.log("点击了背景高亮———————————》noteID:" + noteID)
                     let color = "orange";
                     let tag = "mark";
@@ -612,45 +564,32 @@ html { font-size: 120%; }
                     }
                     noResponseAjax("addNote", params)
                     renderNote(finalNoteId);
-                } else if (res.data == 'note-text') {
-                    if (undefined != noteID) {
-                        let color = "black";
-                        let tag = "b";
-                        let finalNoteId;
-                        let keyword;
-                        if (undefined != res.clickId) {
-                            finalNoteId = res.clickId;
-                            keyword = document.getElementById(finalNoteId).innerText
-                        } else {
-                            finalNoteId = noteID.replace("color", color).replace("tag", tag);
-                            params = {
-                                notesId: finalNoteId,
-                                creatorId: 10001,
-                                createTime: new Date
-                            }
-                            noResponseAjax("addNote", params)
-                            renderNote(finalNoteId)
-                            console.log("__________finalNoteId:" + finalNoteId)
-                            console.log("__________selectionText:" + selectionText)
-                            keyword = selectionText
+                } else if (res.data == 'note-text') { // 添加文本笔记
+                    let finalNoteId;
+                    if ( undefined != noteID ) {
+                    finalNoteId = noteID.replace("--","-b-").replace("b-","b-black");
+                    }
+                    if ( undefined != finalNoteId ) {
+                        let note = {
+                            selection:selectionText,
+                            noteId:finalNoteId
                         }
-                        addNote(finalNoteId, keyword)
+                        addNote(note)
                     }
-
-
-                } else if (res.data == 'note-pic') {
+                } else if (res.data == 'note-pic') { // 添加图片笔记
                     console.log('点击了图片笔记');
-                } else if (res.data == 'note-aud') {
+                } else if (res.data == 'note-aud') { // 添加音频笔记
                     console.log('点击了音频笔记');
-                } else if (res.data == 'note-vid') {
+                } else if (res.data == 'note-vid') { // 添加视频笔记
                     console.log('点击了视频笔记');
-                } else if (res.data == 'edit') {
+                } else if (res.data == 'edit') { // 编辑笔记
                     console.log('点击了编辑笔记' + res.clickId);
-                    if (undefined != res.clickId) {
-                        let noteId = res.clickId
-                        let keyword = document.getElementById(noteId).innerText
-                        addNote(noteId, keyword)
+                    let note = {
+                        selection:document.getElementById(res.clickId).innerText,
+                        noteId:res.clickId
                     }
+                    addNote(note)
+
                 } else if (res.data == 'del') {
                     console.log('点击了删除笔记');
                     delNoteInfo(res.clickId);
@@ -796,11 +735,12 @@ html { font-size: 120%; }
     /**
      * 添加笔记
      */
-    function addNote(noteId,keyword) {
+    function addNote(note) { // noteId,keyword
+
         // if ( undefined != target ) {
             swal({
-                    title:"处理有关<font color='#d2691e'>"+keyword+"</font>的笔记：",
-                    text:"<textarea id='note' onfocus='clearAddNoteTip(this)' onblur='updateContent(this,event)'>"+selectNote(noteId,2)+"</textarea>",
+                    title:"处理有关<font color='#d2691e'>"+note.selection+"</font>的笔记：",
+                    text:"<textarea id='note' onfocus='clearAddNoteTip(this)' onblur='updateContent(this,event)'>"+selectNote(note.noteId,2)+"</textarea>",
                     html:true,
                     type: "info",
                     showCancelButton: true,
@@ -810,19 +750,31 @@ html { font-size: 120%; }
                     closeOnConfirm: false,
                     closeOnCancel: false
                 },function(isConfirm){
+                console.log("进入判断确认-------->此时isConfirm是:"+isConfirm)
                     if (isConfirm) {
-                        // 添加笔记到后端
-                        let params = {
-                            notesId:noteId,
-                            noteContent:$("#note").text(),
-                            creatorId:10001,
-                            createTime:new Date
+                        let response = "";
+                        let nc = $("#note").text()
+                        console.log("进入添加笔记--------》此时添加的笔记是:"+ nc)
+                        if ( "" != $("#note").text() ) {
+                            // 添加笔记到后端
+                            let params = {
+                                notesId:note.noteId,
+                                noteContent:$("#note").text(),
+                                creatorId:10001,
+                                createTime:new Date
+                            }
+                            response = responseAjax("addNote",params);
+                            swal({
+                                title: "处理结果",
+                                text: response
+                            })
+                            renderNote(note.noteId)
+                        } else {
+                            swal({
+                                title: "处理结果",
+                                text: "没有添加任何笔记"
+                            })
                         }
-                        let response = responseAjax("addNote",params);
-                        swal({
-                            title: "处理结果",
-                            text: response
-                        });
                     } else {
                         swal("取消", "处理笔记操作已取消","error");
                     }
