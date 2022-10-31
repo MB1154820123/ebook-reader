@@ -28,60 +28,6 @@
         padding-left:10%;
         padding-right:10%;
     }
-    [class^=tool]{
-        -webkit-user-select: none;
-        padding-left:5px;
-        line-height: 40px;
-        font-family: "Microsoft YaHei UI";
-        font-size: 30px;
-        font-weight: bold;
-        position:absolute;
-        width:35px;
-        height:40px;
-        display:flex;
-    }
-    [class$=side]{
-        background: wheat;
-    }
-    [class$=face]{
-        color:white;
-    }
-    div.tool-red-side{
-        color:red;
-        border:2px solid red;
-        border-radius: 5px;
-    }
-    div.tool-blue-side{
-        color:blue;
-        border:2px solid blue;
-        border-radius: 5px;
-    }
-    div.tool-green-side{
-        border:2px solid green;
-        color:green;
-        border-radius: 5px;
-    }
-    div.tool-skyblue-face{
-        border:2px solid blue;
-        background: skyblue;
-        border-radius: 5px;
-    }
-    div.tool-yellowgreen-face{
-        border:2px solid indianred;
-        background: yellowgreen;
-        border-radius: 5px;
-    }
-    div.tool-purple-face{
-        border:2px solid green;
-        background: purple;
-        border-radius: 5px;
-    }
-    div.tool-clear{
-        border:2px solid darkred;
-        color:white;
-        background: indianred;
-        border-radius: 5px;
-    }
     b,mark,span{cursor: pointer;}
     p>span { border-bottom: 2px dotted;color: #E37274;}
     mark{color:antiquewhite}
@@ -95,7 +41,6 @@
         overflow: hidden;
         font-family: "microsoft yahei";
     }
-
     .RCM-Main{
         position: absolute;
     }
@@ -146,10 +91,6 @@
         background-color:orangered;
         color: #fff;
     }
-    /*.textcenter{*/
-    /*    text-align: center;*/
-    /*}*/
-
     .fa-align-right{
         position: absolute;
         right: 0px;
@@ -184,14 +125,6 @@ Range对象使用心得：
    （Start、End指向不同的容器）
 -->
 <body>
-<!--左侧工具栏-->
-<div class="tool-red-side" title="动词" onclick="addNoteId(null,'b','red',2)" style="left:calc(10% - 100px);top:110px;">动</div>
-<div class="tool-blue-side" title="名词" onclick="addNoteId(null,'b','blue',2)" style="left:calc(10% - 100px);top:170px;">名</div>
-<div class="tool-green-side" title="修词" onclick="addNoteId(null,'b','green',2)" style="left:calc(10% - 100px);top:230px;">修</div>
-<div class="tool-skyblue-face" title="主语" onclick="addNoteId(null,'mark','skyblue',2)" style="left:calc(10% - 100px);top:290px;">主</div>
-<div class="tool-yellowgreen-face" title="谓语" onclick="addNoteId(null,'mark','yellowgreen',2)" style="left:calc(10% - 100px);top:350px;">谓</div>
-<div class="tool-purple-face" title="宾语" onclick="addNoteId(null,'mark','purple',2)" style="left:calc(10% - 100px);top:410px;">宾</div>
-<div class="tool-clear" title="清除" onclick="clearNote()" style="left:calc(10% - 100px);top:470px;">清</div>
 <div class="bu">
     <h1 class="bu_title">第一部 基础知识</h1>
     <h2 class="zhang_title">第1章 算法在计算中的作用</h2>
@@ -366,14 +299,10 @@ html { font-size: 120%; }
 
     $(function(){
         $("p").bind('mouseup',function(){ // 当用户松开鼠标时设置全局noteID
-            console.log("进入p标签...")
-            // let getId = generateNoteId();
             let gid = getNoteId();
             noteID = gid();
             if ( undefined != noteID ) {
-                console.log("SelectionText:"+selectionText)
-                console.log("noteID:"+noteID)
-            }
+                                            }
         })
     })
 
@@ -390,15 +319,17 @@ html { font-size: 120%; }
     // 创建右键菜单类
     (function() {
         let that;
-        let arr = new Array();
         let html = "";
         ! function(e) {
             e.RMenu = {
                 init: function(per) {
-                    if (typeof(per) != "object" && !per.hasOwnProperty('area') && !per.hasOwnProperty(
-                        'items') && !per.hasOwnProperty('callback')) throw "json 数据错误";
+                    if (typeof(per) != "object"
+                        && !per.hasOwnProperty('area')
+                        && !per.hasOwnProperty('items')
+                        && !per.hasOwnProperty('callback'))
+                        throw "json 数据错误";
                     that = this;
-                    this.showmenu(per);
+                    this.showMenu(per);
                     let areaHeight = $(per.area).height();
                     let areaWidth = $(per.area).width();
                     let menuHeight = $('.RCM-Main').height();
@@ -427,7 +358,6 @@ html { font-size: 120%; }
                     $(per.area).on('click', function() {
                         $('.RCM-container').hide();
                     });
-
                     $('.RCM-container li').on('click', function() {
                         let content = $(this).data('content');
                         $('.RCM-container').hide();
@@ -438,7 +368,7 @@ html { font-size: 120%; }
                             });
                     });
 
-                    $('.RCM-container ul li').mouseover(function(e) {
+                    $('.RCM-container ul li').mouseover(function() {
                         if ($(this).find('i').hasClass('fa-align-right')) {
                             let width = $(this).find('i').next('.RCM-child').width();
                             $(this).find('i').next('.RCM-child').css('left', width).show();
@@ -450,12 +380,11 @@ html { font-size: 120%; }
                     });
                 },
                 contextMenu: function(per, key) {
-
-                        var key = key ? key : "Main";
-                        html += '<div class="RCM-container RCM-' + key + '"><ul>';
+                        let sub_key = key ? key : "Main";
+                        html += '<div class="RCM-container RCM-' + sub_key + '"><ul>';
                         $.each(per.items, function(item, val) {
                             let icon = val.icon ? '<i class="fa fa-' + val.icon + ' fa-fw ">&nbsp;' : ''
-                            let center = val.icon ? 'nocenter' : 'textcenter';
+                            let center = val.icon ? 'no_center' : 'text_center';
                             let iconAfter = val.items ?
                                 '<i class="fa fa-chevron-right fa-fw fa-align-right">&nbsp;' : '';
                             html += '<li  data-content=' + item + ' class="' + center +'">' + icon +
@@ -468,7 +397,7 @@ html { font-size: 120%; }
                         html += "</ul></div>";
                         return html;
                 },
-                showmenu: function(per) {
+                showMenu: function(per) {
                     let ce = this.contextMenu(per);
                     $(per.area).append(ce);
                     $('.RCM-container').hide();
@@ -480,7 +409,7 @@ html { font-size: 120%; }
     // 初始化右键菜单
     $(document).ready(function(){
         // 渲染右键菜单
-        var rcm = window.RMenu;
+        let rcm = window.RMenu;
         rcm.init({
             area: 'body',
             items: {
@@ -513,12 +442,8 @@ html { font-size: 120%; }
             callback: function (res) {
                 let params;
                 if (res.data == 'mark-underline') { // 划线
-                    console.log("点击了划线———————————》noteID:" + noteID)
-                    let color = "";
-                    let tag = "span";
-                    let finalNoteId = noteID.replace("color", color).replace("tag", tag);
-                    console.log("finalNoteId:" + finalNoteId)
-                    params = {
+                    let finalNoteId = noteID.replace("--","-span-");
+                                        params = {
                         notesId: finalNoteId,
                         creatorId: 10001,
                         createTime: new Date
@@ -526,12 +451,8 @@ html { font-size: 120%; }
                     noResponseAjax("addNote", params)
                     renderNote(finalNoteId);
                 } else if (res.data == 'mark-bold') { // 加粗
-                    console.log("点击了加粗———————————》noteID:" + noteID)
-                    let color = "black";
-                    let tag = "b";
-                    let finalNoteId = noteID.replace("color", color).replace("tag", tag);
-                    console.log("finalNoteId:" + finalNoteId)
-                    params = {
+                    let finalNoteId = noteID.replace("--","-b-").replace("b-","b-black");
+                                        params = {
                         notesId: finalNoteId,
                         creatorId: 10001,
                         createTime: new Date
@@ -539,12 +460,8 @@ html { font-size: 120%; }
                     noResponseAjax("addNote", params)
                     renderNote(finalNoteId);
                 } else if (res.data == 'highlight-text') { // 描边高亮
-                    console.log("点击了描边高亮———————————》noteID:" + noteID)
-                    let color = "orange";
-                    let tag = "b";
-                    let finalNoteId = noteID.replace("color", color).replace("tag", tag);
-                    console.log("finalNoteId:" + finalNoteId)
-                    params = {
+                    let finalNoteId = noteID.replace("--","-b-").replace("b-","b-yellowgreen");
+                                        params = {
                         notesId: finalNoteId,
                         creatorId: 10001,
                         createTime: new Date
@@ -552,12 +469,8 @@ html { font-size: 120%; }
                     noResponseAjax("addNote", params)
                     renderNote(finalNoteId);
                 } else if (res.data == 'highlight-bg') { // 背景高亮
-                    console.log("点击了背景高亮———————————》noteID:" + noteID)
-                    let color = "orange";
-                    let tag = "mark";
-                    let finalNoteId = noteID.replace("color", color).replace("tag", tag);
-                    console.log("finalNoteId:" + finalNoteId)
-                    params = {
+                    let finalNoteId = noteID.replace("--","-mark-").replace("mark-","mark-yellowgreen");
+                                        params = {
                         notesId: finalNoteId,
                         creatorId: 10001,
                         createTime: new Date
@@ -577,35 +490,32 @@ html { font-size: 120%; }
                         addNote(note)
                     }
                 } else if (res.data == 'note-pic') { // 添加图片笔记
-                    console.log('点击了图片笔记');
-                } else if (res.data == 'note-aud') { // 添加音频笔记
-                    console.log('点击了音频笔记');
-                } else if (res.data == 'note-vid') { // 添加视频笔记
-                    console.log('点击了视频笔记');
-                } else if (res.data == 'edit') { // 编辑笔记
-                    console.log('点击了编辑笔记' + res.clickId);
-                    let note = {
+                                    } else if (res.data == 'note-aud') { // 添加音频笔记
+                                    } else if (res.data == 'note-vid') { // 添加视频笔记
+                                    } else if (res.data == 'edit') { // 编辑笔记
+                    let search_note = document.getElementById(res.clickId)
+                    if ( null == search_note ) {
+                        swal("温馨提示","请添加笔记后再进行编辑","error")
+                    } else {
+                        let note = {
                         selection:document.getElementById(res.clickId).innerText,
                         noteId:res.clickId
+                        }
+                        addNote(note)
                     }
-                    addNote(note)
-
                 } else if (res.data == 'del') {
-                    console.log('点击了删除笔记');
-                    delNoteInfo(res.clickId);
+                    let search_note = document.getElementById(res.clickId)
+                    if ( null == search_note ) {
+                        swal("温馨提示","无法删除不存在的内容","error")
+                    } else {
+                        delNoteInfo(res.clickId);
+                    }
                 }
             }
         })
 
 
 
-    })
-
-    // 当用户右击了body，将右键菜单渲染到dom
-    $(function(){
-            $("body").bind('mouseup', function () {
-
-            })
     })
 
     // 在某一事件触发后，刷新事件源的Text节点内容
@@ -662,13 +572,11 @@ html { font-size: 120%; }
      * 清除划线或笔记
      */
     function delNoteInfo(nid){
-        console.log("***********nid:"+nid)
         if (undefined != nid){
             let params = {
                 notesId:nid,
                 clearType:1  // 1.清除划线 2.清除划线和笔记
             }
-
             let response = responseAjax("clearNote",params);
             if ( response.includes("存在笔记") ){
                 swal({
@@ -700,35 +608,6 @@ html { font-size: 120%; }
                 swal("笔记删除成功")
             }
         }
-        /*
-        swal("是否清除笔记？", {
-            buttons: {
-                cancel: "取消操作！",
-                catch: {
-                    text: "清除划线！",
-                    value: "clear_stl",
-                },
-                default: {
-                    text: "清除划线和笔记！",
-                    value: "clear_all",
-                }
-            },
-        }).then((value) => {
-                switch (value) {
-                    case "clear_stl":
-                        params.clearType = 1;
-                        let clearResultInfo = responseAjax("clearNote",params)
-                        swal(clearResultInfo+"！"); // 划线已经清除
-                        break;
-                    case "clear_all":
-                        params.clearType = 2;
-                        clearResultInfo = responseAjax("clearNote",params)
-                        swal(clearResultInfo+"！"); // 划线和笔记已清除
-                        break;
-                }
-            });
-            *
-         */
         noResponseAjax("toReader","");
     }
 
@@ -736,8 +615,6 @@ html { font-size: 120%; }
      * 添加笔记
      */
     function addNote(note) { // noteId,keyword
-
-        // if ( undefined != target ) {
             swal({
                     title:"处理有关<font color='#d2691e'>"+note.selection+"</font>的笔记：",
                     text:"<textarea id='note' onfocus='clearAddNoteTip(this)' onblur='updateContent(this,event)'>"+selectNote(note.noteId,2)+"</textarea>",
@@ -750,11 +627,8 @@ html { font-size: 120%; }
                     closeOnConfirm: false,
                     closeOnCancel: false
                 },function(isConfirm){
-                console.log("进入判断确认-------->此时isConfirm是:"+isConfirm)
                     if (isConfirm) {
                         let response = "";
-                        let nc = $("#note").text()
-                        console.log("进入添加笔记--------》此时添加的笔记是:"+ nc)
                         if ( "" != $("#note").text() ) {
                             // 添加笔记到后端
                             let params = {
@@ -780,7 +654,6 @@ html { font-size: 120%; }
                     }
                 }
              )
-        // }
     }
     /**
      * 查询笔记
@@ -812,87 +685,9 @@ html { font-size: 120%; }
         }
         return note;
     }
-
-    /**
-     * @type insert
-     * @desc 添加笔记id v0.1
-     * @time 2022/10/24 22:21
-     * @author mabo
-     * @param color
-     * @param tag
-
-     function addNoteId(selection,color,tag) {
-         if ( undefined == selection || null == selection){
-         selection = window.getSelection();
-        }
-        let hang = selection.focusNode.parentElement;
-        let range = selection.getRangeAt(0);
-        let left = selection.anchorOffset;
-        let right = selection.focusOffset;
-        if ( left == right ) {
-            return false;
-        }
-        let max;
-        if ( left > right ) {
-            max = left;
-            left = right;
-            right = max;
-        }
-        let b1 = (range.startContainer.previousSibling == null);
-        let b2 = (range.startContainer.nextSibling == null);
-        let hangOuter = hang.outerHTML.replace("<p class=\"hang\">","").replace("</p>","");
-        if ( !hangOuter.includes("</b>") && !hangOuter.includes("</mark>") ) {
-            // 表示当前行中没有笔记，既然这样，接下来添加的笔记是第一个，id是无争议的
-            // 没有笔记正常流程，不用改动left、right
-        } else if ( !b1 && b2 ) {
-            let nextId = range.startContainer.previousSibling.id;
-            let offR = parseInt(nextId.split("-")[2].split(":")[1]);
-            right = right + offR;
-            left = right - selection.toString().length;
-        } else if ( !b1 ) { // 前无元素后有元素、前后都有元素、前后都无元素
-            let preId = range.startContainer.previousSibling.id;
-            let offR = parseInt(preId.split("-")[2].split(":")[1]);
-            right = right + offR;
-            left = right - selection.toString().length;
-        }
-        let did;
-        let hid;
-        let duan = selection.focusNode.parentElement.parentElement;
-        let duans = document.getElementsByClassName("duan");
-        for (let i = 0; i < duans.length; i++) {
-            if (duans[i] === duan) {
-                did = i;
-                let hangs = duans[i].children;
-                for (let j = 0; j < hangs.length; j++) {
-                    if (hangs[j] === hang) {
-                        hid = j;
-                    }
-                }
-            }
-        }
-        let noteId = did + "-" + hid + "-" + left + ":" + right + "-" + tag + "-" + color;
-        let basicNote = {
-            "notesId": noteId,
-            "creatorId": 10001,
-            "createTime": new Date
-        }
-        let sci1 = "onmouseover";
-        let sci2 = "onclick";
-        let scv1 = "selectNote(this,1)";
-        let scv2 = "addNote(this,2)";
-
-        let stl = tag == "mark" ? "background-color" : "color";
-        let node = document.createElement(tag);
-        node = $(node).attr("id", noteId).attr(sci1, scv1).attr(sci2, scv2).css(stl, color).text(selection)[0];
-        range.deleteContents();
-        range.insertNode(node);
-        noResponseAjax("addNote", basicNote)
-    }
-     */
-
     // 初始化
     $(document).ready(function(){
-        // 具体操作
+        // 渲染dom
         renderNote(responseAjax("selectNotesIds",""));
     })
 
