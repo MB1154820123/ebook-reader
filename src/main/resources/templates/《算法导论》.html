@@ -5,13 +5,13 @@
     <title>《算法导论 第2版》</title>
     <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.1/jquery.js"></script>
     <link rel="stylesheet" type="text/css" href="https://www.jq22.com/jquery/font-awesome.4.6.0.css">
-    <link rel="stylesheet" href="../static/css/notesStyle.css">
+    <link rel="stylesheet" href="../static/css/book_note.css">
     <script src="https://cdn.bootcdn.net/ajax/libs/prism/9000.0.1/prism.min.js"></script>
     <link href="https://cdn.bootcdn.net/ajax/libs/prism-themes/1.9.0/prism-a11y-dark.min.css" rel="stylesheet">
     <!--样式二：<link rel="stylesheet" href="../static/css/prism-dark.css">-->
     <link rel="stylesheet" href="../static/css/sweetalert.css">
     <script src="../static/js/sweetalert-dev.js"></script>
-    <script src="../static/js/utils/string_util.js"></script>
+    <script src="../static/js/self_utils/string_util.js"></script>
     <!--右键菜单-->
     <style>
     textarea{
@@ -117,34 +117,15 @@
     }
     </style>
 </head>
-<!--
-Range对象使用心得：
-1. range.setStart|End(node,offset) 中的node是range截取范围的容器（可以是元素，也可以是范围更大的节点）
-   若该容器中有可见元素，则偏移offset代表【选中】从左向右【几个元素|节点】，若node内部除了文本外不存在可见内容
-   则，offset指的是从左往右选中多少个字符(如果Start、End指向同一个元素)；除了这之外，也可以跨多个容器，即
-   （Start、End指向不同的容器）
--->
 <body>
-<div class="bu">
-    <h1 class="bu_title">第一部 基础知识</h1>
-    <h2 class="zhang_title">第1章 算法在计算中的作用</h2>
-    <div class="duan">
-        <p class="hang">算法是什么？</p>
-        <p class="hang">为什么要研究算法？</p>
-        <p class="hang">算法的作用是什么？</p>
-    </div>
-    <h3 class="jie_title">1.1 算法</h3>
-    <div class="duan">
-        <p class="hang">算法是定义良好的计算过程，它取一个或一组值作为输入，并产生出一个或一组值作为输出。</p>
-        <p class="hang">算法是一系列的计算步骤，将输入数据转换成输出结果。</p>
-    </div>
-    <pre><span t="1" class="code_stl_trigger">切换主题</span><code class="language-javascript line-numbers">let a = 12;
-@media (min-width: 64rem) {
-html { font-size: 120%; }
-}</code></pre>
+<!--加载书籍-->
+<div id="content"></div>
 
-</div>
 <script type="text/javascript">
+    // 永不消逝的全局变量
+    let noteID;
+    let selectionText;
+
     // 代码样式
     $(".code_stl_trigger").click(function (){
         if( $(this).attr("t") == 1 ){
@@ -156,11 +137,155 @@ html { font-size: 120%; }
         }
 
     })
-    // 永不消逝的全局变量
-    let noteID;
-    let selectionText;
-    // function getNoteId(){
-        function generateNoteId(){
+
+    // 工具：在某一事件触发后，刷新事件源的Text节点内容
+    function updateContent(target,e){
+        $(target).text(e.target.value);
+    }
+    // 工具：清除添加笔记的提示内容
+    function clearAddNoteTip(target){
+        if ( $(target).html() == "请输入需要添加的笔记：" ){
+            $(target).html("");
+        }
+    }
+    // 工具：无返回值的ajax请求
+    function noResponseAjax(serviceName,params){
+        $.ajax({
+            type: "post",
+            url: "http://127.0.0.1:8080/"+serviceName,
+            contentType: "application/json;charset=UTF-8",
+            data: JSON.stringify(params)
+        });
+    }
+    // 工具：有返回值的ajax请求
+    function responseAjax(serviceName,params){
+        let rs;
+        $.ajax({
+            type: "post",
+            url: "http://127.0.0.1:8080/"+serviceName,
+            contentType: "application/json;charset=UTF-8",
+            async: false,
+            data: JSON.stringify(params),
+            success:function (value) {
+                rs =  value; // 默认的异步ajax请求无法对全局变量赋值，需加上async: false
+            }
+        });
+        return rs;
+    }
+
+    // 添加笔记
+    function addNote(note) {
+        swal({
+                title:"处理有关<font color='#d2691e'>"+note.selection+"</font>的笔记：",
+                text:"<textarea id='note' onfocus='clearAddNoteTip(this)' onblur='updateContent(this,event)'>"+selectNote(note.notePosition,2)+"</textarea>",
+                html:true,
+                type: "info",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "确定处理",
+                cancelButtonText: "取消处理",
+                closeOnConfirm: false,
+                closeOnCancel: false
+            },function(isConfirm){
+                if (isConfirm) {
+                    let response = "";
+                    if ( "" != $("#note").text() ) {
+                        // 添加笔记到后端
+                        let params = {
+                            notePosition:note.notePosition,
+                            noteContent:$("#note").text(),
+                            creatorId:10001
+                        }
+                        response = responseAjax("addNote",params);
+                        swal({
+                            title: "处理结果",
+                            text: response
+                        })
+                        renderNote(note.notePosition)
+                    } else {
+                        swal({
+                            title: "处理结果",
+                            text: "没有添加任何笔记"
+                        })
+                    }
+                } else {
+                    swal("取消", "处理笔记操作已取消","error");
+                }
+            }
+        )
+    }
+
+    // 查询笔记
+    function selectNote(notePosition,v) {
+        let note;
+        let response;
+        $.ajax({
+            type: "post",
+            url: "http://127.0.0.1:8080/selectNoteByPosition",
+            contentType: "application/json;charset=UTF-8",
+            async: false,
+            data: JSON.stringify({"notePosition":notePosition}),
+            success:function (value) {
+                response =  value; // 默认的异步ajax请求无法对全局变量赋值，需加上async: false
+            }
+        });
+        if ( v == 2 ) {
+            if ( response != "null" && response != "" ){
+                note = response;
+            } else {
+                note = "请输入需要添加的笔记：";
+            }
+            let noteDom = document.getElementById("note");
+            $(noteDom).innerText = note;
+        }
+        else if (  v == 1 && response != "null"  && response != "" ) {
+            document.getElementById(notePosition).setAttribute("title", response);
+        }
+        return note;
+    }
+
+    // 清除划线或笔记
+    function delNoteInfo(nid){
+        if (undefined != nid){
+            let params = {
+                notePosition:nid,
+                clearType:1  // 1.清除划线 2.清除划线和笔记
+            }
+            let response = responseAjax("clearNote",params);
+            if ( response.includes("存在笔记") ){
+                swal({
+                        title:"操作反馈",
+                        text:response,
+                        showCancelButton: true,
+                        cancelButtonText: "取消删除",
+                        confirmButtonText: "确定删除",
+                        confirmButtonColor: "#DEB887"
+                    },function(isConfirm) {
+                        if (isConfirm) {
+                            params.clearType = 2;
+                            responseAjax("clearNote",params);
+                            let mark = document.getElementById(nid).outerHTML.split(" ")[0].split("<")[1];
+                            let parent = document.getElementById(nid).parentElement;
+                            let rs = clearMark(parent.innerHTML,mark,nid);
+                            parent.innerHTML = rs;
+                        } else {
+                            noResponseAjax("toReader","")
+                        }
+                    }
+                )
+            } else {
+                let mark = document.getElementById(nid).outerHTML.split(" ")[0].split("<")[1];
+                let parent = document.getElementById(nid).parentElement;
+                let rs = clearMark(parent.innerHTML,mark,nid);
+                parent.innerHTML = rs;
+                swal("笔记删除成功")
+            }
+        }
+        noResponseAjax("toReader","");
+    }
+
+    // 生成noteID
+    function generateNoteId(){
             let selection = getSel();
             selectionText = selection.toString(); // 为全局变量selectionText赋值
             let hang = selection.focusNode.parentElement;
@@ -208,44 +333,44 @@ html { font-size: 120%; }
                     }
                 }
             }
-            let noteId = did + "-" + hid + "-" + left + ":" + right + "-" + "" + "-" + "";
-            return noteId // 返出变量，构建永久闭包变量
+            let notePosition = did + "-" + hid + "-" + left + ":" + right + "-" + "" + "-" + "";
+            return notePosition // 返出变量，构建永久闭包变量
     }
 
     // 添加noteID
     function addNoteId(nid,tag,color,type) {
-        let noteId;
+        let notePosition;
         if ( undefined != nid) { // 如果自定义ID存在，就用自定义的
-            noteId = nid
+            notePosition = nid
         } else { // 否则用全局默认的
-            noteId = noteID
+            notePosition = noteID
         }
         // 两种添加ID的情况
         if ( type === 1 ) {
-            return noteId
+            return notePosition
         } else {
-            if ( undefined != noteId && !noteId.includes("--") && noteId != "false" ) { // 当type !=  1 且noteID正常时，则把Id保存至数据库
+            if ( undefined != notePosition && !notePosition.includes("--") && notePosition != "false" ) { // 当type !=  1 且noteID正常时，则把Id保存至数据库
                 let basicNote = {
-                    "notesId": noteId,
-                    "creatorId": 10001,
-                    "createTime": new Date
+                    "notePosition": notePosition,
+                    "creatorId": 10001
                 }
                 noResponseAjax("addNote", basicNote) // 将笔记信息添加至后端
             }
         }
     }
+
     // 渲染notesID
-    const renderNote = function (noteIds) {
-        if ( "" != noteIds ) {
-            noteIds = noteIds.replace(/\[|]/g, "").split(",");
-            for (let n = 0; n < noteIds.length; n++) {
-                let did = parseInt(noteIds[n].split("-")[0]);
-                let hid = parseInt(noteIds[n].split("-")[1]);
-                let left = parseInt(noteIds[n].split("-")[2].split(":")[0]);
-                let right = parseInt(noteIds[n].split("-")[2].split(":")[1]);
-                let tag = noteIds[n].split("-")[3];
+    const renderNote = function (notePositions) {
+        if ( "" != notePositions ) {
+            notePositions = notePositions.replace(/\[|]/g, "").split(",");
+            for (let n = 0; n < notePositions.length; n++) {
+                let did = parseInt(notePositions[n].split("-")[0]);
+                let hid = parseInt(notePositions[n].split("-")[1]);
+                let left = parseInt(notePositions[n].split("-")[2].split(":")[0]);
+                let right = parseInt(notePositions[n].split("-")[2].split(":")[1]);
+                let tag = notePositions[n].split("-")[3];
                 let color;
-                switch (noteIds[n].split("-")[4]) {
+                switch (notePositions[n].split("-")[4]) {
                     case "black":
                         color = "black";
                         break;
@@ -277,35 +402,21 @@ html { font-size: 120%; }
                 let sci1 = "onmouseover";
                 let sci2 = "onclick";
                 let scv1 = "selectNote(this.id,1)";
-                let scv2 = "addNote({noteId:this.id,selection:this.innerText})";
+                let scv2 = "addNote({notePosition:this.id,selection:this.innerText})";
                 let script = " "+sci1+"="+scv1+" "+sci2+"="+scv2
                 let stl = (tag == "mark" ? "background-color" : tag == "b" ?  "color":"");
                 let thisHangNode = document.getElementsByClassName("duan")[did].getElementsByClassName("hang")[hid];
-                let ml = "<"+tag+" id="+noteIds[n]+" style="+stl+":"+color+script+">";
+                let ml = "<"+tag+" id="+notePositions[n]+" style="+stl+":"+color+script+">";
                 thisHangNode.innerHTML = replaceSelectionIgnoreMark(thisHangNode,left,right,ml);
             }
         }
     };
 
-
-    // 当用户点击右键菜单时包装选中的文本
-    // 将非闭包变量转换为闭包变量并公布出去
-    function getNoteId() {
-        function gId() {
-            return generateNoteId()
-        }
-        return  gId
-    }
-
-    $(function(){
-        $("p").bind('mouseup',function(){ // 当用户松开鼠标时设置全局noteID
-            let gid = getNoteId();
-            noteID = gid();
-            if ( undefined != noteID ) {
-                                            }
-        })
+    // 构造闭包全局变量noteID
+    $("p").bind('mouseup',function(){
+        let gid = getNoteId();
+        noteID = gid();
     })
-
     function getSel(){
         if(document.Selection){
             //ie浏览器
@@ -314,6 +425,12 @@ html { font-size: 120%; }
             //标准浏览器
             return window.getSelection();
         }
+    }
+    function getNoteId() {
+        function gId() {
+            return generateNoteId()
+        }
+        return  gId
     }
 
     // 创建右键菜单类
@@ -405,7 +522,6 @@ html { font-size: 120%; }
             };
         }(window)
     })();
-
     // 初始化右键菜单
     $(document).ready(function(){
         // 渲染右键菜单
@@ -444,36 +560,32 @@ html { font-size: 120%; }
                 if (res.data == 'mark-underline') { // 划线
                     let finalNoteId = noteID.replace("--","-span-");
                                         params = {
-                        notesId: finalNoteId,
-                        creatorId: 10001,
-                        createTime: new Date
+                        notePosition: finalNoteId,
+                        creatorId: 10001
                     }
                     noResponseAjax("addNote", params)
                     renderNote(finalNoteId);
                 } else if (res.data == 'mark-bold') { // 加粗
                     let finalNoteId = noteID.replace("--","-b-").replace("b-","b-black");
                                         params = {
-                        notesId: finalNoteId,
-                        creatorId: 10001,
-                        createTime: new Date
+                        notePosition: finalNoteId,
+                        creatorId: 10001
                     }
                     noResponseAjax("addNote", params)
                     renderNote(finalNoteId);
                 } else if (res.data == 'highlight-text') { // 描边高亮
                     let finalNoteId = noteID.replace("--","-b-").replace("b-","b-yellowgreen");
                                         params = {
-                        notesId: finalNoteId,
-                        creatorId: 10001,
-                        createTime: new Date
+                        notePosition: finalNoteId,
+                        creatorId: 10001
                     }
                     noResponseAjax("addNote", params)
                     renderNote(finalNoteId);
                 } else if (res.data == 'highlight-bg') { // 背景高亮
                     let finalNoteId = noteID.replace("--","-mark-").replace("mark-","mark-yellowgreen");
                                         params = {
-                        notesId: finalNoteId,
-                        creatorId: 10001,
-                        createTime: new Date
+                        notePosition: finalNoteId,
+                        creatorId: 10001
                     }
                     noResponseAjax("addNote", params)
                     renderNote(finalNoteId);
@@ -485,7 +597,7 @@ html { font-size: 120%; }
                     if ( undefined != finalNoteId ) {
                         let note = {
                             selection:selectionText,
-                            noteId:finalNoteId
+                            notePosition:finalNoteId
                         }
                         addNote(note)
                     }
@@ -499,7 +611,7 @@ html { font-size: 120%; }
                     } else {
                         let note = {
                         selection:document.getElementById(res.clickId).innerText,
-                        noteId:res.clickId
+                        notePosition:res.clickId
                         }
                         addNote(note)
                     }
@@ -518,177 +630,17 @@ html { font-size: 120%; }
 
     })
 
-    // 在某一事件触发后，刷新事件源的Text节点内容
-    function updateContent(target,e){
-        $(target).text(e.target.value);
-    }
-    // 清除添加笔记的提示内容
-    function clearAddNoteTip(target){
-        if ( $(target).html() == "请输入需要添加的笔记：" ){
-            $(target).html("");
-        }
-    }
-
-    /**
-     * @type js data-insert-ajax-tool
-     * @desc 操作后端数据的ajax
-     * @time 2022/10/21 9:37
-     * @author mabo
-     * @param serviceName
-     * @param params
-     */
-    function noResponseAjax(serviceName,params){
-        $.ajax({
-            type: "post",
-            url: "http://127.0.0.1:8080/"+serviceName,
-            contentType: "application/json;charset=UTF-8",
-            data: JSON.stringify(params)
-        });
-    }
-
-    /**
-     * @type js data-select-ajax-tool
-     * @desc 查询后端数据的ajax
-     * @time 2022/10/21 9:39
-     * @author mabo
-     * @param serviceName
-     * @param params
-     */
-    function responseAjax(serviceName,params){
-        let rs;
-        $.ajax({
-            type: "post",
-            url: "http://127.0.0.1:8080/"+serviceName,
-            contentType: "application/json;charset=UTF-8",
-            async: false,
-            data: JSON.stringify(params),
-            success:function (value) {
-                rs =  value; // 默认的异步ajax请求无法对全局变量赋值，需加上async: false
-            }
-        });
-        return rs;
-    }
-    /**
-     * 清除划线或笔记
-     */
-    function delNoteInfo(nid){
-        if (undefined != nid){
-            let params = {
-                notesId:nid,
-                clearType:1  // 1.清除划线 2.清除划线和笔记
-            }
-            let response = responseAjax("clearNote",params);
-            if ( response.includes("存在笔记") ){
-                swal({
-                        title:"操作反馈",
-                        text:response,
-                        showCancelButton: true,
-                        cancelButtonText: "取消删除",
-                        confirmButtonText: "确定删除",
-                        confirmButtonColor: "#DEB887"
-                    },function(isConfirm) {
-                        if (isConfirm) {
-                            params.clearType = 2;
-                            responseAjax("clearNote",params);
-                            let mark = document.getElementById(nid).outerHTML.split(" ")[0].split("<")[1];
-                            let parent = document.getElementById(nid).parentElement;
-                            let rs = clearMark(parent.innerHTML,mark,nid);
-                            parent.innerHTML = rs;
-                        } else {
-                            swal("取消删除笔记")
-                            noResponseAjax("toReader","")
-                        }
-                    }
-                )
-            } else {
-                let mark = document.getElementById(nid).outerHTML.split(" ")[0].split("<")[1];
-                let parent = document.getElementById(nid).parentElement;
-                let rs = clearMark(parent.innerHTML,mark,nid);
-                parent.innerHTML = rs;
-                swal("笔记删除成功")
-            }
-        }
-        noResponseAjax("toReader","");
-    }
-
-    /**
-     * 添加笔记
-     */
-    function addNote(note) { // noteId,keyword
-            swal({
-                    title:"处理有关<font color='#d2691e'>"+note.selection+"</font>的笔记：",
-                    text:"<textarea id='note' onfocus='clearAddNoteTip(this)' onblur='updateContent(this,event)'>"+selectNote(note.noteId,2)+"</textarea>",
-                    html:true,
-                    type: "info",
-                    showCancelButton: true,
-                    confirmButtonColor: "#DD6B55",
-                    confirmButtonText: "确定处理",
-                    cancelButtonText: "取消处理",
-                    closeOnConfirm: false,
-                    closeOnCancel: false
-                },function(isConfirm){
-                    if (isConfirm) {
-                        let response = "";
-                        if ( "" != $("#note").text() ) {
-                            // 添加笔记到后端
-                            let params = {
-                                notesId:note.noteId,
-                                noteContent:$("#note").text(),
-                                creatorId:10001,
-                                createTime:new Date
-                            }
-                            response = responseAjax("addNote",params);
-                            swal({
-                                title: "处理结果",
-                                text: response
-                            })
-                            renderNote(note.noteId)
-                        } else {
-                            swal({
-                                title: "处理结果",
-                                text: "没有添加任何笔记"
-                            })
-                        }
-                    } else {
-                        swal("取消", "处理笔记操作已取消","error");
-                    }
-                }
-             )
-    }
-    /**
-     * 查询笔记
-     */
-    function selectNote(noteId,v) {
-        let note;
-        let response;
-        $.ajax({
-            type: "post",
-            url: "http://127.0.0.1:8080/selectNote",
-            contentType: "application/json;charset=UTF-8",
-            async: false,
-            data: JSON.stringify({"notesId":noteId}),
-            success:function (value) {
-                response =  value; // 默认的异步ajax请求无法对全局变量赋值，需加上async: false
-            }
-        });
-        if ( v == 2 ) {
-            if ( response != "null" && response != "" ){
-                note = response;
-            } else {
-                note = "请输入需要添加的笔记：";
-            }
-            let noteDom = document.getElementById("note");
-            $(noteDom).innerText = note;
-        }
-        else if (  v == 1 && response != "null"  && response != "" ) {
-            document.getElementById(noteId).setAttribute("title", response);
-        }
-        return note;
-    }
     // 初始化
     $(document).ready(function(){
-        // 渲染dom
-        renderNote(responseAjax("selectNotesIds",""));
+        // 初始化文章
+        let html = responseAjax("selectAllText","");
+        document.getElementById("content").innerHTML = html;
+
+
+
+
+        // 渲染笔记到初始化的文章中
+        renderNote(responseAjax("selectNotePositions",""));
     })
 
 

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.zymdb.eb.reader.mapper.BookTitleMapper">
+
+    <resultMap id="BaseResultMap" type="top.zymdb.eb.reader.entity.BookTitle">
+        <!--@Table book_title-->
+        <result property="titleId" column="title_id"/>
+        <result property="titleType" column="title_type"/>
+        <result property="titleContent" column="title_content"/>
+        <result property="createTime" column="create_time"/>
+        <result property="modifyTime" column="modify_time"/>
+    </resultMap>
+    <!--新增所有列-->
+    <insert id="insert">
+        insert into book_title(title_type, title_content, create_time, modify_time)
+        values (#{titleType}, #{titleContent}, #{createTime}, #{modifyTime})
+    </insert>
+		<!--通过主键删除-->
+    <delete id="deleteByBookTitleId">
+        delete from book_title where title_id = #{titleId}
+    </delete>
+    <!--通过主键修改数据-->
+    <update id="update">
+        update book_title
+        <set>
+            <if test="titleType != null">
+                title_type = #{titleType},
+            </if>
+            <if test="titleContent != null and titleContent != ''">
+                title_content = #{titleContent},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime},
+            </if>
+            <if test="modifyTime != null">
+                modify_time = #{modifyTime},
+            </if>
+        </set>
+        where title_id = #{titleId}
+    </update>
+		<!--查询单个-->
+    <select id="queryByBookTitleId" resultMap="BaseResultMap">
+        select
+          title_id, title_type, title_content, create_time, modify_time				from book_title
+        where title_id = #{titleId}
+    </select>
+		<!--通过实体作为筛选条件查询-->
+    <select id="queryAll" resultMap="BaseResultMap">
+        select
+          title_id, title_type, title_content, create_time, modify_time				from test.book_title
+		</select>
+		<!--批量插入-->
+    <insert id="insertBatch">
+        insert into book_title(title_type, title_content, create_time, modify_time)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+        (#{entity.titleType}, #{entity.titleContent}, #{entity.createTime}, #{entity.modifyTime})
+        </foreach>
+    </insert>
+		<!--批量插入和更新-->
+    <insert id="insertOrUpdateBatch">
+        insert into book_title(title_type, title_content, create_time, modify_time)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.titleType}, #{entity.titleContent}, #{entity.createTime}, #{entity.modifyTime})
+        </foreach>
+        on duplicate key update
+                title_type = values(title_type),
+                title_content = values(title_content),
+                create_time = values(create_time),
+                modify_time = values(modify_time)
+	</insert>
+	<!--*******************************************以上方法是通用方法***********************************-->
+</mapper>
+

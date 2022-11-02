@@ -62,13 +62,6 @@ let clearMark = function(html,tag,id){
     let re_str = "(<)(b|span|mark)([ ]*)?(id=\""+id+"\"[^>]*)?(>)";
     let re = new RegExp(re_str, "g");
     let new_str = html.replace(re,"");
-    console.log("@@@@@@@@@@HTML:"+html);
-    console.log("@@@@@@@@@@TAG:"+tag);
-    console.log("@@@@@@@@@@ID:"+id);
-    console.log("@@@@@@@@@@RS:"+new_str);
-    // let re_str1 = "(</span>)([^<>]*)(</span>)";
-    // let re1 = new RegExp(re_str1, "g");
-    // let new_str1 = new_str.replace(re1,"$1$2");
     return new_str
 }
 
@@ -85,11 +78,6 @@ let rangeIndex = function(element,left,right){
         index = i;
     }
     return index
-}
-
-
-let insertMark = function(element,left,right,tag){
-    return replaceSelectionIgnoreMark(element,left,right,tag)
 }
 
 

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.zymdb.eb.reader.mapper.BookInfoMapper">
+
+    <resultMap id="BaseResultMap" type="top.zymdb.eb.reader.entity.BookInfo">
+        <!--@Table book_info-->
+        <result property="infoId" column="info_id"/>
+        <result property="isbn" column="isbn"/>
+        <result property="title" column="title"/>
+        <result property="author" column="author"/>
+        <result property="description" column="description"/>
+        <result property="readerId" column="reader_id"/>
+        <result property="category" column="category"/>
+    </resultMap>
+    <!--新增所有列-->
+    <insert id="insert">
+        insert into book_info(isbn, title, author, description, reader_id, category)
+        values (#{isbn}, #{title}, #{author}, #{description}, #{readerId}, #{category})
+    </insert>
+		<!--通过主键删除-->
+    <delete id="deleteByBookInfoId">
+        delete from book_info where info_id = #{infoId}
+    </delete>
+    <!--通过主键修改数据-->
+    <update id="update">
+        update book_info
+        <set>
+            <if test="isbn != null and isbn != ''">
+                isbn = #{isbn},
+            </if>
+            <if test="title != null and title != ''">
+                title = #{title},
+            </if>
+            <if test="author != null and author != ''">
+                author = #{author},
+            </if>
+            <if test="description != null and description != ''">
+                description = #{description},
+            </if>
+            <if test="readerId != null">
+                reader_id = #{readerId},
+            </if>
+            <if test="category != null">
+                category = #{category},
+            </if>
+        </set>
+        where info_id = #{infoId}
+    </update>
+		<!--查询单个-->
+    <select id="queryByBookInfoId" resultMap="BaseResultMap">
+        select
+          info_id, isbn, title, author, description, reader_id, category				from book_info
+        where info_id = #{infoId}
+    </select>
+		<!--通过实体作为筛选条件查询-->
+    <select id="queryAll" resultMap="BaseResultMap">
+        select
+          info_id, isbn, title, author, description, reader_id, category				from test.book_info
+		</select>
+		<!--批量插入-->
+    <insert id="insertBatch">
+        insert into book_info(isbn, title, author, description, reader_id, category)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+        (#{entity.isbn}, #{entity.title}, #{entity.author}, #{entity.description}, #{entity.readerId}, #{entity.category})
+        </foreach>
+    </insert>
+		<!--批量插入和更新-->
+    <insert id="insertOrUpdateBatch">
+        insert into book_info(isbn, title, author, description, reader_id, category)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.isbn}, #{entity.title}, #{entity.author}, #{entity.description}, #{entity.readerId}, #{entity.category})
+        </foreach>
+        on duplicate key update
+                isbn = values(isbn),
+                title = values(title),
+                author = values(author),
+                description = values(description),
+                reader_id = values(reader_id),
+                category = values(category)
+	</insert>
+	<!--*******************************************以上方法是通用方法***********************************-->
+</mapper>
+

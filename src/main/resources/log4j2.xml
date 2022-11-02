@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--日志级别从低到高优先级为：ALL < TRACE < DEBUG < INFO < WARN < ERROR < FATAL < OFF。-->
+<!--status：设置 log4j2 自身内部的信息输出，可以不设置-->
+<!--monitorInterval：监视配置文件变化间隔时间，单位秒，Log4j2 能够自动检测配置文件是否修改，同时更新配置-->
+<configuration status="WARN" monitorInterval="0">
+    <!--先定义所有的 appender 附加器-->
+    <appenders>
+        <!--控制台输出配置-->
+        <console name="Console" target="SYSTEM_OUT">
+            <!--输出日志的格式-->
+            <PatternLayout pattern="[%d{HH:mm:ss:SSS}] [%p] - [%t] - %l - %m%n"/>
+        </console>
+
+        <!--文件存储文件设置-->
+        <!--fileName：文件存储路径及名称，可以是绝对路径或者相对路径; 存储的永远是最新的日志信息-->
+        <!--filePattern：当 fileName 指定的文件大小超过限制，就会根据此文件名规则新建存档目录与文件，同时将 fileName 文件中的
+         内容剪切到存档文件中，如下配置，会新建存档路径 logs/2021-06/info-2021-06-01-1.log -->
+        <RollingFile name="RollingFileInfo" fileName="logs/info.log"
+                     filePattern="logs/$${date:yyyy-MM}/info-%d{yyyy-MM-dd}-%i.log">
+            <!--日志文件中日志信息的格式-->
+            <PatternLayout pattern="[%d{HH:mm:ss:SSS}] [%p] - [%t] - %l - %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <!--日志文件大小超过多少时进行存档-->
+                <SizeBasedTriggeringPolicy size="500 MB"/>
+            </Policies>
+        </RollingFile>
+    </appenders>
+    <!--然后定义logger，只有定义了logger并引入的appender，appender才会生效-->
+    <loggers>
+        <!--过滤掉 spring 和 mybatis 的一些无用的 DEBUG 信息;也可以单独指定自己的某个包-->
+        <logger name="org.springframework" level="WARN"></logger>
+        <logger name="org.mybatis" level="WARN"></logger>
+        <logger name="org.example.log4j2" level="WARN"></logger>
+
+        <!--root 与 logger 是父子关系，没有指定 logger 的，全部统一用 root 配置的日志级别处理.-->
+        <!--通常设置 debug、info、error 基本即可-->
+        <root level="WARN">
+            <appender-ref ref="Console"/>
+            <appender-ref ref="RollingFileInfo"/>
+        </root>
+    </loggers>
+</configuration>

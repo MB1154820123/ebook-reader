@@ -1,29 +1,14 @@
 package top.zymdb.eb.reader.util;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 public class StringOperator {
     /**
-     * @desc 将nid的标注id减1
-     * @time 2022/10/19 9:04
+     * @type tool_java
+     * @desc 对处理结束后的字符串数组进行倒序排列
+     * @time 2022/11/2 22:06
      * @author mabo
-     * @param nid
+     * @param input
      * @return
      */
-   public static String noteIdSub(String nid){
-       Integer i = Integer.valueOf(nid.split("-")[3].replaceAll("[a-z]*",""));
-       if ( i > 1 ) {
-           i = i - 1;
-       }
-       Pattern p = Pattern.compile("([^\\-]*\\-[^\\-]*\\-[^\\-]*\\-[bm])([0-9]+)(\\-[^\\-]*)");
-       Matcher m = p.matcher(nid);
-       if ( m.find() ){
-           nid = m.group(1) + i + m.group(3);
-       }
-        return nid;
-   }
-
     public static String[] getStrings(String[] input) {
         String[] s2 = new String[input.length];
         String[] s3 = new String[input.length];
@@ -48,6 +33,24 @@ public class StringOperator {
             m++;
         }
         return s3;
+    }
+
+    /**
+     * 该函数判断一个字符串是否包含标点符号（中文英文标点符号）。
+     * 原理是原字符串做一次清洗，清洗掉所有标点符号。
+     * 此时，如果原字符串包含标点符号，那么清洗后的长度和原字符串长度不同。返回true。
+     * 如果原字符串未包含标点符号，则清洗后长度不变。返回false。
+     * @param s
+     * @return
+     */
+    public static boolean checkContainsPunctuation (String s) {
+        boolean b = false;
+        String tmp = s;
+        tmp = tmp.replaceAll("\\p{P}", "");
+        if (s.length() != tmp.length()) {
+            b = true;
+        }
+        return b;
     }
 
 }

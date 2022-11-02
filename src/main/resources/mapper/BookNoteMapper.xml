@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.zymdb.eb.reader.mapper.BookNoteMapper">
+
+    <resultMap id="BaseResultMap" type="top.zymdb.eb.reader.entity.BookNote">
+        <!--@Table book_note-->
+        <result property="creatorId" column="creator_id"/>
+        <result property="noteContent" column="note_content"/>
+        <result property="commentContent" column="comment_content"/>
+        <result property="createTime" column="create_time"/>
+        <result property="modifyTime" column="modify_time"/>
+        <result property="noteId" column="note_id"/>
+        <result property="notePosition" column="note_position"/>
+    </resultMap>
+<!--***********************************通用功能****************-->
+    <!--新增-->
+    <insert id="insert">
+        insert into book_note(creator_id, note_content,note_position)
+        values (#{creatorId}, #{noteContent},#{notePosition})
+    </insert>
+<!--
+		批量插入
+    <insert id="insertBatch">
+        insert into book_note(creator_id, note_content, comment_content, create_time, modify_time, note_position)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+        (#{entity.creatorId}, #{entity.noteContent}, #{entity.commentContent}, #{entity.createTime}, #{entity.modifyTime}, #{entity.notePosition})
+        </foreach>
+    </insert>
+-->
+		<!--通过主键删除-->
+    <delete id="deleteByBookNoteId">
+        delete from book_note where note_id = #{noteId}
+    </delete>
+    <delete id="deleteByNotePosition">
+        delete from book_note where note_position = #{notePosition}
+    </delete>
+    <!--通过主键修改数据-->
+    <update id="update">
+        update book_note
+        <set>
+            <if test="creatorId != null">
+                creator_id = #{creatorId},
+            </if>
+            <if test="noteContent != null and noteContent != ''">
+                note_content = #{noteContent},
+            </if>
+            <if test="commentContent != null and commentContent != ''">
+                comment_content = #{commentContent},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime},
+            </if>
+            <if test="modifyTime != null">
+                modify_time = #{modifyTime},
+            </if>
+            <if test="notePosition != null and notePosition != ''">
+                note_position = #{notePosition},
+            </if>
+        </set>
+        where note_id = #{noteId}
+    </update>
+    <!--通过主键修改数据-->
+    <update id="updateByNotePosition">
+        update book_note
+        <set>
+            <if test="creatorId != null">
+                creator_id = #{creatorId},
+            </if>
+            <if test="noteContent != null and noteContent != ''">
+                note_content = #{noteContent},
+            </if>
+            <if test="commentContent != null and commentContent != ''">
+                comment_content = #{commentContent},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime},
+            </if>
+            <if test="modifyTime != null">
+                modify_time = #{modifyTime},
+            </if>
+        </set>
+        where note_position = #{notePosition}
+    </update>
+<!--
+    批量插入和更新
+    <insert id="insertOrUpdateBatch">
+        insert into book_note(creator_id, note_content, comment_content, create_time, modify_time, note_position)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.creatorId}, #{entity.noteContent}, #{entity.commentContent}, #{entity.createTime}, #{entity.modifyTime}, #{entity.notePosition})
+        </foreach>
+        on duplicate key update
+        creator_id = values(creator_id),
+        note_content = values(note_content),
+        comment_content = values(comment_content),
+        create_time = values(create_time),
+        modify_time = values(modify_time),
+        note_position = values(note_position)</insert>
+-->
+		<!--查询单个-->
+    <select id="queryByBookNoteId" resultMap="BaseResultMap">
+        select
+          creator_id, note_content, comment_content, create_time, modify_time, note_id, note_position				from book_note
+        where note_id = #{noteId}
+    </select>
+    <select id="queryByNotePosition" resultType="top.zymdb.eb.reader.entity.BookNote">
+        select
+            creator_id, note_content, comment_content, create_time, modify_time, note_id, note_position				from book_note
+        where note_position = #{notePosition}
+    </select>
+		<!--通过实体作为筛选条件查询-->
+    <select id="queryAll" resultMap="BaseResultMap">
+        select
+          creator_id, note_content, comment_content, create_time, modify_time, note_id, note_position				from test.book_note
+		</select>
+<!--***********************************专用功能****************-->
+	<!--查询所有笔记位置-->
+    <select id="queryBookNotePositions" resultType="java.lang.String">
+        select note_position from book_note;
+    </select>
+    <!--查询最后一个笔记位置-->
+    <select id="getLastBookNotePosition" resultType="java.lang.String">
+        select note_position from book_note order by note_id desc limit 1
+    </select>
+    <!--判断某个字段是否为空-->
+    <select id="hasBookNoteByBookNoteId" resultType="java.lang.Boolean">
+        select
+            case
+                when note_content is not null then true
+                when note_content is null then false
+                end b
+        from book_note where note_id = #{bookNoteId}
+    </select>
+    <select id="hasBookNoteByNotePosition" resultType="java.lang.Boolean">
+        select
+            case
+                when note_content is not null then true
+                when note_content is null then false
+                end b
+        from book_note where note_position = #{notePosition}
+    </select>
+
+</mapper>
+

@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.zymdb.eb.reader.mapper.BookTextMapper">
+
+    <resultMap id="BaseResultMap" type="top.zymdb.eb.reader.entity.BookText">
+        <!--@Table book_text-->
+        <result property="expressionOriginal" column="expression_original"/>
+        <result property="expressionComment" column="expression_comment"/>
+        <result property="expressionAnalytical" column="expression_analytical"/>
+        <result property="expressionTranslation" column="expression_translation"/>
+        <result property="contentBefore" column="content_before"/>
+        <result property="contentAfter" column="content_after"/>
+        <result property="bookId" column="book_id"/>
+        <result property="paragraphId" column="paragraph_id"/>
+        <result property="sentenceId" column="sentence_id"/>
+        <result property="bookUrl" column="book_url"/>
+        <result property="sortVal" column="sort_val"/>
+        <result property="insertTime" column="insert_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="langOriginal" column="lang_original"/>
+        <result property="textId" column="text_id"/>
+    </resultMap>
+    <!--新增所有列-->
+    <insert id="insert">
+        insert into book_text(expression_original, expression_comment, expression_analytical, expression_translation,
+                              content_before, content_after, book_id, paragraph_id, sentence_id, book_url, sort_val,
+                              insert_time, update_time, lang_original)
+        values (#{expressionOriginal}, #{expressionComment}, #{expressionAnalytical}, #{expressionTranslation},
+                #{contentBefore}, #{contentAfter}, #{bookId}, #{paragraphId}, #{sentenceId}, #{bookUrl}, #{sortVal},
+                #{insertTime}, #{updateTime}, #{langOriginal})
+    </insert>
+    <!--通过主键删除-->
+    <delete id="deleteByBookTextId">
+        delete
+        from book_text
+        where text_id = #{textId}
+    </delete>
+    <!--通过主键修改数据-->
+    <update id="update">
+        update book_text
+        <set>
+            <if test="expressionOriginal != null and expressionOriginal != ''">
+                expression_original = #{expressionOriginal},
+            </if>
+            <if test="expressionComment != null and expressionComment != ''">
+                expression_comment = #{expressionComment},
+            </if>
+            <if test="expressionAnalytical != null and expressionAnalytical != ''">
+                expression_analytical = #{expressionAnalytical},
+            </if>
+            <if test="expressionTranslation != null and expressionTranslation != ''">
+                expression_translation = #{expressionTranslation},
+            </if>
+            <if test="contentBefore != null and contentBefore != ''">
+                content_before = #{contentBefore},
+            </if>
+            <if test="contentAfter != null and contentAfter != ''">
+                content_after = #{contentAfter},
+            </if>
+            <if test="bookId != null">
+                book_id = #{bookId},
+            </if>
+            <if test="paragraphId != null">
+                paragraph_id = #{paragraphId},
+            </if>
+            <if test="sentenceId != null">
+                sentence_id = #{sentenceId},
+            </if>
+            <if test="bookUrl != null and bookUrl != ''">
+                book_url = #{bookUrl},
+            </if>
+            <if test="sortVal != null">
+                sort_val = #{sortVal},
+            </if>
+            <if test="insertTime != null">
+                insert_time = #{insertTime},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+            <if test="langOriginal != null">
+                lang_original = #{langOriginal},
+            </if>
+        </set>
+        where text_id = #{textId}
+    </update>
+    <!--查询单个-->
+    <select id="queryByBookTextId" resultMap="BaseResultMap">
+        select expression_original,
+               expression_comment,
+               expression_analytical,
+               expression_translation,
+               content_before,
+               content_after,
+               book_id,
+               paragraph_id,
+               sentence_id,
+               book_url,
+               sort_val,
+               insert_time,
+               update_time,
+               lang_original,
+               text_id
+        from book_text
+        where text_id = #{textId}
+    </select>
+    <!--通过实体作为筛选条件查询-->
+    <select id="queryAll" resultMap="BaseResultMap">
+        select expression_original,
+               expression_comment,
+               expression_analytical,
+               expression_translation,
+               content_before,
+               content_after,
+               book_id,
+               paragraph_id,
+               sentence_id,
+               book_url,
+               sort_val,
+               insert_time,
+               update_time,
+               lang_original,
+               text_id
+        from test.book_text
+    </select>
+    <!--批量插入-->
+    <insert id="insertBatch">
+        insert into book_text(expression_original, expression_comment, expression_analytical, expression_translation,
+        content_before, content_after, book_id, paragraph_id, sentence_id, book_url, sort_val, insert_time, update_time,
+        lang_original)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.expressionOriginal}, #{entity.expressionComment}, #{entity.expressionAnalytical},
+            #{entity.expressionTranslation}, #{entity.contentBefore}, #{entity.contentAfter}, #{entity.bookId},
+            #{entity.paragraphId}, #{entity.sentenceId}, #{entity.bookUrl}, #{entity.sortVal}, #{entity.insertTime},
+            #{entity.updateTime}, #{entity.langOriginal})
+        </foreach>
+    </insert>
+    <!--批量插入和更新-->
+    <insert id="insertOrUpdateBatch">
+        insert into book_text(expression_original, expression_comment, expression_analytical, expression_translation,
+        content_before, content_after, book_id, paragraph_id, sentence_id, book_url, sort_val, insert_time, update_time,
+        lang_original)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.expressionOriginal}, #{entity.expressionComment}, #{entity.expressionAnalytical},
+            #{entity.expressionTranslation}, #{entity.contentBefore}, #{entity.contentAfter}, #{entity.bookId},
+            #{entity.paragraphId}, #{entity.sentenceId}, #{entity.bookUrl}, #{entity.sortVal}, #{entity.insertTime},
+            #{entity.updateTime}, #{entity.langOriginal})
+        </foreach>
+        on duplicate key update
+        expression_original = values(expression_original),
+        expression_comment = values(expression_comment),
+        expression_analytical = values(expression_analytical),
+        expression_translation = values(expression_translation),
+        content_before = values(content_before),
+        content_after = values(content_after),
+        book_id = values(book_id),
+        paragraph_id = values(paragraph_id),
+        sentence_id = values(sentence_id),
+        book_url = values(book_url),
+        sort_val = values(sort_val),
+        insert_time = values(insert_time),
+        update_time = values(update_time),
+        lang_original = values(lang_original)
+    </insert>
+    <!--*******************************************以上方法是通用方法***********************************-->
+</mapper>
+

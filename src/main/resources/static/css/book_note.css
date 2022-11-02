@@ -1,0 +1,30 @@
+@font-face{
+    font-family: Yang;
+    src: url("Yang.ttf");
+}
+
+textarea{
+    border:0;
+    border-radius:5px;
+    background-color:rgba(241,241,241,.98);
+    width: 355px;
+    height: 100px;
+    padding: 10px;
+    resize: none;
+}
+.bu{
+    width:80%;
+    padding-left:10%;
+    padding-right:10%;
+}
+.duan{
+    font-family:'Yang';
+    font-size:24px;
+    margin-top:30px;
+}
+.hang{
+    margin-top:-15px;
+}
+b,mark,span{cursor: pointer;}
+p>span { border-bottom: 2px dotted;color: #E37274;}
+mark{color:antiquewhite}
