@@ -2,141 +2,60 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>《算法导论 第2版》</title>
+    <meta name="referrer" content="no-referrer" /> <!--解决三方图片403-->
+    <link rel="icon" type="image/svg+xml" href="../static/log/book.png">
+    <title>BookCenter</title>
+    <!--jQuery-->
     <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.1/jquery.js"></script>
+    <!--字体图标相关-->
     <link rel="stylesheet" type="text/css" href="https://www.jq22.com/jquery/font-awesome.4.6.0.css">
-    <link rel="stylesheet" href="../static/css/book_note.css">
-    <script src="https://cdn.bootcdn.net/ajax/libs/prism/9000.0.1/prism.min.js"></script>
-    <link href="https://cdn.bootcdn.net/ajax/libs/prism-themes/1.9.0/prism-a11y-dark.min.css" rel="stylesheet">
-    <!--样式二：<link rel="stylesheet" href="../static/css/prism-dark.css">-->
-    <link rel="stylesheet" href="../static/css/sweetalert.css">
-    <script src="../static/js/sweetalert-dev.js"></script>
+    <!--自定义工具-->
     <script src="../static/js/self_utils/string_util.js"></script>
-    <!--右键菜单-->
-    <style>
-    textarea{
-        border:0;
-        border-radius:5px;
-        background-color:rgba(241,241,241,.98);
-        width: 355px;
-        height: 100px;
-        padding: 10px;
-        resize: none;
-    }
-    .bu{
-        width:80%;
-        padding-left:10%;
-        padding-right:10%;
-    }
-    b,mark,span{cursor: pointer;}
-    p>span { border-bottom: 2px dotted;color: #E37274;}
-    mark{color:antiquewhite}
-    /*RCM*/
-    body{
-        position: absolute;
-        top: 0px;
-        bottom: 0px;
-        right: 0px;
-        left: 0px;
-        overflow: hidden;
-        font-family: "microsoft yahei";
-    }
-    .RCM-Main{
-        position: absolute;
-    }
-    .RCM-container{
-        border: 1px solid #ccc;
-        padding: 5px 0px;
-        display: block;
-        box-shadow: 0px 0px 2px #ccc;
-        font-size: 14px;
-        border-radius: 3px;
-        z-index: 10000;
-        background: #fff;
-        color: #000;
-    }
-    .RCM-container ul{
-        list-style: none;
-        padding: 0px;
-        margin: 0px;
-    }
-
-    .RCM-container ul li{
-        /* width: 70px; */
-        height: 30px;
-        line-height: 30px;
-        /* text-align: center; */
-        padding:0px 18px 0px 15px;
-        cursor: pointer;
-        position: relative;
-    }
-
-    .RCM-container ul li[data-content^=mark]:hover{
-        background-color: mediumpurple;
-        color: #fff;
-    }
-    .RCM-container ul li[data-content^=highlight]:hover{
-        background-color: cadetblue;
-        color: #fff;
-    }
-    .RCM-container ul li[data-content^=note]:hover{
-        background-color: yellowgreen;
-        color: #fff;
-    }
-    .RCM-container ul li[data-content=edit]:hover{
-        background-color: deeppink;
-        color: #fff;
-    }
-    .RCM-container ul li[data-content=del]:hover{
-        background-color:orangered;
-        color: #fff;
-    }
-    .fa-align-right{
-        position: absolute;
-        right: 0px;
-        top: 10px;
-    }
-    .RCM-child{
-        position: absolute;
-        top: 0px;
-        width: 100%;
-    }
-    .code_stl_trigger{
-        border-radius: 5px;
-        background: #9f9f9f;
-        color:white;
-        user-select:none;
-        float:right;
-        font-size:14px;
-        font-family: "Yang";
-    }
-    .code_stl_trigger:hover{
-        border-radius: 5px;
-        background: #eeeeee;
-        color:grey;
-    }
-    </style>
+    <script src="../static/js/self_utils/dom_util.js"></script>
+    <script src="../static/js/self_utils/code_util.js"></script>
+    <link rel="stylesheet" href="../static/css/book_note.css">
+    <!--弹框美化-->
+    <script src="../static/js/sweetalert-dev.js"></script>
+    <link rel="stylesheet" href="../static/css/sweetalert.css">
+    <!--代码着色-->
+    <script src="../static/js/prism.js"></script>
+    <script src="../static/js/beautify.js"></script>
+    <link rel="stylesheet" href="../static/css/prism.css">
 </head>
 <body>
+
 <!--加载书籍-->
-<div id="content"></div>
+<h1 id="webTitle" style="text-align:center;"></h1>
+<!--数据库数据展示区域-->
+<div id="localPage"></div>
 
+<!--网页数据展示区域-->
+<div id="webPage"></div>
+
+<!--提取网页-->
+<input id="url" type="text" placeholder="请输入需要提取的网址"/>
+<button id="go">开始提取</button><br>
+</script>
 <script type="text/javascript">
-    // 永不消逝的全局变量
-    let noteID;
-    let selectionText;
-
-    // 代码样式
-    $(".code_stl_trigger").click(function (){
-        if( $(this).attr("t") == 1 ){
-            document.head.innerHTML=document.head.innerHTML.replace("<!--样式二：<link rel=\"stylesheet\" href=\"../static/css/prism-dark.css\">-->","<link rel=\"stylesheet\" href=\"../static/css/prism-dark.css\">");
-            $(this).attr("t",2)
-        } else if( $(this).attr("t") == 2 ) {
-            document.head.innerHTML=document.head.innerHTML.replace("<link rel=\"stylesheet\" href=\"../static/css/prism-dark.css\">","<!--样式二：<link rel=\"stylesheet\" href=\"../static/css/prism-dark.css\">-->");
-            $(this).attr("t",1)
-        }
-
+    // 网页提取
+    $("#go").on("click",function(){
+        let url = document.getElementById("url").value
+        let params = {"url":url}
+        let result = responseAjax("getHtml",params)
+        // 处理结果
+        processHtml(result)
+        $("code").attr("contenteditable",true)
     })
+
+////////////////////////////全局变量集/////////////////////////
+////////////////////////////////////////////////////////////
+let noteID;                                              //
+let selectionText;                                      //
+let thisInputEl;                                       //
+////////////////////////////////////////////////////////
+
+
+
 
     // 工具：在某一事件触发后，刷新事件源的Text节点内容
     function updateContent(target,e){
@@ -148,6 +67,7 @@
             $(target).html("");
         }
     }
+
     // 工具：无返回值的ajax请求
     function noResponseAjax(serviceName,params){
         $.ajax({
@@ -285,39 +205,40 @@
     }
 
     // 生成noteID
-    function generateNoteId(){
-            let selection = getSel();
+    function generateNoteId(selection) {
+        if (null != selection) {
             selectionText = selection.toString(); // 为全局变量selectionText赋值
             let hang = selection.focusNode.parentElement;
             let range = selection.getRangeAt(0);
             let left = selection.anchorOffset;
             let right = selection.focusOffset;
-            if ( left == right ) {
+            if (left == right) {
                 return false;
             }
             let max;
-            if ( left > right ) {
+            if (left > right) {
                 max = left;
                 left = right;
                 right = max;
             }
             let b1 = (range.startContainer.previousSibling == null);
             let b2 = (range.startContainer.nextSibling == null);
-            let hangOuter = hang.outerHTML.replace("<p class=\"hang\">","").replace("</p>","");
-            if ( !hangOuter.includes("</b>") && !hangOuter.includes("</mark>") && !hangOuter.includes("</span>") ) {
+            let hangOuter = hang.outerHTML.replace("<p class=\"hang\">", "").replace("</p>", "");
+            if (!hangOuter.includes("</b>") && !hangOuter.includes("</mark>") && !hangOuter.includes("</span>")) {
                 // 表示当前行中没有笔记，既然这样，接下来添加的笔记是第一个，id是无争议的
                 // 没有笔记正常流程，不用改动left、right
-            } else if ( !b1 && b2 ) {
+            } else if (!b1 && b2) {
                 let nextId = range.startContainer.previousSibling.id;
                 let offR = parseInt(nextId.split("-")[2].split(":")[1]);
                 right = right + offR;
                 left = right - selection.toString().length;
-            } else if ( !b1 ) { // 前无元素后有元素、前后都有元素、前后都无元素
+            } else if (!b1) { // 前无元素后有元素、前后都有元素、前后都无元素
                 let preId = range.startContainer.previousSibling.id;
                 let offR = parseInt(preId.split("-")[2].split(":")[1]);
                 right = right + offR;
                 left = right - selection.toString().length;
             }
+            /*获取段行ID*/
             let did;
             let hid;
             let duan = selection.focusNode.parentElement.parentElement;
@@ -334,7 +255,8 @@
                 }
             }
             let notePosition = did + "-" + hid + "-" + left + ":" + right + "-" + "" + "-" + "";
-            return notePosition // 返出变量，构建永久闭包变量
+            return notePosition
+        }
     }
 
     // 添加noteID
@@ -364,8 +286,8 @@
         if ( "" != notePositions ) {
             notePositions = notePositions.replace(/\[|]/g, "").split(",");
             for (let n = 0; n < notePositions.length; n++) {
-                let did = parseInt(notePositions[n].split("-")[0]);
-                let hid = parseInt(notePositions[n].split("-")[1]);
+                let rdid = parseInt(notePositions[n].split("-")[0]);
+                let rhid = parseInt(notePositions[n].split("-")[1]);
                 let left = parseInt(notePositions[n].split("-")[2].split(":")[0]);
                 let right = parseInt(notePositions[n].split("-")[2].split(":")[1]);
                 let tag = notePositions[n].split("-")[3];
@@ -405,33 +327,13 @@
                 let scv2 = "addNote({notePosition:this.id,selection:this.innerText})";
                 let script = " "+sci1+"="+scv1+" "+sci2+"="+scv2
                 let stl = (tag == "mark" ? "background-color" : tag == "b" ?  "color":"");
-                let thisHangNode = document.getElementsByClassName("duan")[did].getElementsByClassName("hang")[hid];
+                let thisHangNode = document.getElementsByClassName("duan")[rdid].getElementsByClassName("hang")[rhid];
                 let ml = "<"+tag+" id="+notePositions[n]+" style="+stl+":"+color+script+">";
                 thisHangNode.innerHTML = replaceSelectionIgnoreMark(thisHangNode,left,right,ml);
             }
         }
     };
 
-    // 构造闭包全局变量noteID
-    $("p").bind('mouseup',function(){
-        let gid = getNoteId();
-        noteID = gid();
-    })
-    function getSel(){
-        if(document.Selection){
-            //ie浏览器
-            return document.selection;
-        }else{
-            //标准浏览器
-            return window.getSelection();
-        }
-    }
-    function getNoteId() {
-        function gId() {
-            return generateNoteId()
-        }
-        return  gId
-    }
 
     // 创建右键菜单类
     (function() {
@@ -463,9 +365,9 @@
                                 top: yPos + "px"
                             }).show();
                         }
-                        if (areaHeight - yPos < menuHeight) {
-                            yPos = (yPos - menuHeight - 20);
-                        }
+                        // if (areaHeight - yPos < menuHeight) {
+                        //     yPos = (yPos - menuHeight - 20);
+                        // }
                         $('.RCM-Main').css({
                             left: xPos + "px",
                             top: yPos + "px"
@@ -522,29 +424,32 @@
             };
         }(window)
     })();
-    // 初始化右键菜单
-    $(document).ready(function(){
-        // 渲染右键菜单
+
+        // 实例化右键菜单
         let rcm = window.RMenu;
-        rcm.init({
+
+
+    rcm.init({
             area: 'body',
             items: {
+                "copy": {name: "复制一波", icon: 'copy'},
+                "clipboard": {name: "粘贴一波", icon: 'clipboard'},
                 "mark": {
-                    name: "标记选中", icon: 'font',
+                    name: "标记一波", icon: 'font',
                     items: {
-                        "mark-underline": {name: "划线记号", icon: 'underline'},
-                        "mark-bold": {name: "加粗记号", icon: 'bold'}
+                        "mark-underline": {name: "划一下线", icon: 'underline'},
+                        "mark-bold": {name: "加一下粗", icon: 'bold'}
                     }
                 },
                 "highlight": {
-                    name: "高亮选中", icon: 'google-wallet',
+                    name: "高亮一波", icon: 'google-wallet',
                     items: {
                         "highlight-text": {name: "描边高亮", icon: 'square-o'},
                         "highlight-bg": {name: "背景高亮", icon: 'square'}
                     }
                 },
                 "note": {
-                    name: "添加笔记", icon: 'leanpub',
+                    name: "笔记一波", icon: 'leanpub',
                     items: {
                         "note-text": {name: "文本笔记", icon: 'file-word-o'},
                         "note-pic": {name: "图片笔记", icon: 'file-image-o'},
@@ -557,7 +462,18 @@
             },
             callback: function (res) {
                 let params;
-                if (res.data == 'mark-underline') { // 划线
+                if (res.data == 'copy') {
+                    // 更新剪切板
+                    navigator.clipboard.writeText(selectionText).then(function() {
+                        /* clipboard successfully set */
+                    }, function() {
+                        /* clipboard write failed */
+                    });
+                } else if (res.data == 'clipboard') {
+                    //粘贴
+                    navigator.clipboard.readText().then(clipText => $(thisInputEl).val(clipText));
+                }
+                else if (res.data == 'mark-underline') { // 划线
                     let finalNoteId = noteID.replace("--","-span-");
                                         params = {
                         notePosition: finalNoteId,
@@ -592,7 +508,7 @@
                 } else if (res.data == 'note-text') { // 添加文本笔记
                     let finalNoteId;
                     if ( undefined != noteID ) {
-                    finalNoteId = noteID.replace("--","-b-").replace("b-","b-black");
+                    finalNoteId = noteID.replace("--","-mark-");
                     }
                     if ( undefined != finalNoteId ) {
                         let note = {
@@ -627,24 +543,38 @@
         })
 
 
-
-    })
-
-    // 初始化
-    $(document).ready(function(){
+//////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////初始化块开始////////////////////////////////////
+    $(function(){
+        // 初始化标题
+        $("h1").text(document.title)
         // 初始化文章
         let html = responseAjax("selectAllText","");
-        document.getElementById("content").innerHTML = html;
-
-
-
-
+        document.getElementById("localPage").innerHTML = html;
         // 渲染笔记到初始化的文章中
         renderNote(responseAjax("selectNotePositions",""));
+        // 初始化监听器，监听p标签的onmouseup事件
+        // 监听器不一定都需要在初始化中声明
+        // 之所以声明到初始化块中，是因为我们要监听的DOM原本不存在html源码中，是监听被处理后的源码
+        $("p").mouseup(function (){
+            let noteId = generateNoteId(window.getSelection())
+            noteID = noteId;
+
+        })
+        $("input").mouseup(function(){
+            thisInputEl = this
+            }
+        )
     })
+///////////////////////////////////////初始化块结束//////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
 
 
 </script>
-
 </body>
 </html>

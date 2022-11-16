@@ -46,11 +46,10 @@ public class StringOperator {
     public static boolean checkContainsPunctuation (String s) {
         boolean b = false;
         String tmp = s;
-        tmp = tmp.replaceAll("\\p{P}", "");
+        tmp = tmp.replaceAll("(,|，|\\.|。|!|！|\\?|？)", "");
         if (s.length() != tmp.length()) {
             b = true;
         }
         return b;
     }
-
 }
